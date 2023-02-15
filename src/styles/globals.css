@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    *,
+    ::before,
+    ::after {
+        @apply box-border;
+    }
+
+    body {
+        @apply bg-black text-white;
+    }
+
+    input {
+        @apply bg-zinc-900 text-white;
+    }
+}
