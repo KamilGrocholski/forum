@@ -1,5 +1,4 @@
 import {z} from 'zod'
-import { categoryBase } from './category'
 
 export type SubCategorySchemes = {
     create: z.input<typeof subCategorySchemes.create>
@@ -14,7 +13,9 @@ export const subCategoryBase = {
 
 export const subCategorySchemes = {
     getThreads: z.object({
-        subCategoryId: subCategoryBase.id
+        subCategoryId: subCategoryBase.id,
+        limit: z.number().default(10),
+        cursor: subCategoryBase.id.optional()
     }),
     create: z.object({
         name: subCategoryBase.name,

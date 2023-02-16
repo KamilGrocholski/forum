@@ -2,6 +2,11 @@ import { postSchemes } from "../schemes/post";
 import { createTRPCRouter, publicProcedure, protectedProcedure, imperatorProcedure } from "../trpc";
 
 export const postRouter = createTRPCRouter({
+    count: publicProcedure
+        .query(({ctx}) => {
+
+            return ctx.prisma.post.count()
+        }),
     getLatest: publicProcedure
         .query(({ctx}) => {
 

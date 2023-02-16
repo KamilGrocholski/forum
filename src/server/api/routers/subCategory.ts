@@ -2,14 +2,21 @@ import { subCategorySchemes } from "../schemes/subCategory";
 import { createTRPCRouter, publicProcedure, protectedProcedure, imperatorProcedure } from "../trpc";
 
 export const subCategoryRouter = createTRPCRouter({
-    getThreads: publicProcedure
+    threadsPagination: publicProcedure
         .input(subCategorySchemes.getThreads)
-        .query(({ctx, input}) => {
-            const {subCategoryId} = input
+        .query(async ({ctx, input}) => {
+            const {subCategoryId, limit, cursor} = input
 
-            return ctx.prisma.thread.findMany({
+            const items = await ctx.prisma.thread.findMany({
+                take: limit + 1, 
                 where: {
                     subCategoryId
+                },
+                cursor: cursor ? {
+                    id: cursor
+                } : undefined,
+                orderBy: {
+                    createdAt: 'desc'
                 },
                 select: {
                     id: true,
@@ -41,9 +48,20 @@ export const subCategoryRouter = createTRPCRouter({
                                 }
                             }
                         }
-                    }
+                    },
                 }
             })
+
+            let nextCursor: typeof cursor | undefined = undefined;
+            if (items.length > limit) {
+                const nextItem = items.pop()
+                nextCursor = nextItem?.id
+            }
+
+            return {
+                threads: items,
+                nextCursor
+            }
         }),
     create: protectedProcedure
         .input(subCategorySchemes.create)

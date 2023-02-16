@@ -3,6 +3,11 @@ import { threadSchemes } from "../schemes/thread";
 import { createTRPCRouter, publicProcedure, protectedProcedure, imperatorProcedure } from "../trpc";
 
 export const threadRouter = createTRPCRouter({
+    count: publicProcedure
+        .query(({ctx}) => {
+
+            return ctx.prisma.thread.count()
+        }),
     getById: publicProcedure
         .input(threadSchemes.getById)
         .query(({ctx, input}) => {

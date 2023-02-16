@@ -5,10 +5,16 @@ import { FaUserAlt } from 'react-icons/fa'
 import { ImStatsBars } from 'react-icons/im'
 import usePaths from "../../hooks/usePaths"
 import LinkButton from "../common/LinkButton"
+import { api } from "../../utils/api"
+import StateWrapper from "../common/StateWrapper"
+import SmallLoader from "../common/SmallLoader"
 
 const Footer: React.FC = () => {
     const layoutWidth = appStore(state => state.layoutWidth)
     const paths = usePaths()
+    const threadsCount = api.thread.count.useQuery()
+    const postsCount = api.post.count.useQuery()
+    const usersCount = api.user.count.useQuery()
 
     return (
         <footer className='border-t-4 border-red-900 bg-zinc-900 pt-3'>
@@ -43,7 +49,38 @@ const Footer: React.FC = () => {
                             <ImStatsBars />
                             <span>Forum statistics</span>
                         </h2>
-                        <div>Lorem ipsum dolor, sit amet consectetur adipisicing elit. Eveniet, sapiente ipsum veritatis accusamus aspernatur, nemo perspiciatis facilis cum nisi repellat dolor quisquam in vero natus, aliquid asperiores. Officiis, architecto rerum!</div>
+                        <div>
+                            <div className='flex justify-between items-center'>
+                                <span>Threads:</span>
+                                <StateWrapper
+                                    data={threadsCount.data}
+                                    isLoading={threadsCount.isLoading}
+                                    isError={threadsCount.isError}
+                                    NonEmpty={(count) => <span>{count}</span>}
+                                    Loading={<SmallLoader />}
+                                />
+                            </div>
+                            <div className='flex justify-between items-center'>
+                                <span>Posts:</span>
+                                <StateWrapper
+                                    data={postsCount.data}
+                                    isLoading={postsCount.isLoading}
+                                    isError={postsCount.isError}
+                                    NonEmpty={(count) => <span>{count}</span>}
+                                    Loading={<SmallLoader />}
+                                />
+                            </div>
+                            <div className='flex justify-between items-center'>
+                                <span>Members:</span>
+                                <StateWrapper
+                                    data={usersCount.data}
+                                    isLoading={usersCount.isLoading}
+                                    isError={usersCount.isError}
+                                    NonEmpty={(count) => <span>{count}</span>}
+                                    Loading={<SmallLoader />}
+                                />
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div>STRONA</div>
