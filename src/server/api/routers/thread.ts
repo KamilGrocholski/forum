@@ -31,7 +31,8 @@ export const threadRouter = createTRPCRouter({
                     subCategory: {
                         select: {
                             name: true,
-                            id: true
+                            id: true,
+                            category: true
                         }                        
                     },
                     user: {

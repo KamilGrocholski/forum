@@ -4,11 +4,14 @@ import StateWrapper from "../../../../components/common/StateWrapper"
 import MainLayout from "../../../../components/layout/MainLayout"
 import { api } from "../../../../utils/api"
 import Image from 'next/image'
-import Link from "next/link"
+import usePaths from "../../../../hooks/usePaths"
+import LinkButton from "../../../../components/common/LinkButton"
+import ImageWithFallback from "../../../../components/common/ImageWithFallback"
 
 const SubCategoryPage: NextPage = () => {
   const router = useRouter()
   const subCategoryId = router.query.subCategoryId as string
+  const paths = usePaths()
 
   const threads = api.subCategory.getThreads.useQuery({ subCategoryId })
 
@@ -19,21 +22,23 @@ const SubCategoryPage: NextPage = () => {
         isLoading={threads.isLoading}
         isError={threads.isError}
         NonEmpty={(threads) => (
-          <div>
+          <div className='flex flex-col space-y-3'>
             {threads.map((thread) => (
-              <div key={thread.id} className='grid grid-cols-6'>
+              <div key={thread.id} className='grid grid-cols-6 items-center'>
                 <div>
-                  <Image
+                  <ImageWithFallback
                     src={thread.user.image ?? ''}
+                    fallbackSrc={''}
                     alt=''
                     height={50}
                     width={50}
+                    className='rounded-full'
                   />
                 </div>
-                <div className='col-span-2'>
-                  <Link href={`/threads/${thread.id}`} className='hover:underline'>
+                <div className='col-span-2 min-w-0'>
+                  <LinkButton href={paths.thread(thread.id)} className='hover:underline truncate block'>
                     {thread.title}
-                  </Link>
+                  </LinkButton>
                 </div>
                 <div>ratings</div>
                 <div>
@@ -41,13 +46,17 @@ const SubCategoryPage: NextPage = () => {
                   <div>Views: {thread._count.views}</div>
                 </div>
                 <div>
-                  <div>{thread.posts[0]?.user.name}</div>
                   <div>
-                    <Image
+                    {thread.posts[0]?.user.name}
+                  </div>
+                  <div>
+                    <ImageWithFallback
                       src={thread.posts[0]?.user.image ?? ''}
+                      fallbackSrc={''}
                       height={50}
                       width={50}
                       alt=''
+                      className='rounded-full'
                     />
                   </div>
                 </div>

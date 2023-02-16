@@ -1,22 +1,18 @@
-import { useForm, type FieldValues, type SubmitHandler, type SubmitErrorHandler, Controller } from 'react-hook-form'
+import { useForm, type SubmitHandler, type SubmitErrorHandler } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import TextInput from '../TextInput'
 import { threadSchemes, type ThreadSchemes } from '../../../server/api/schemes/thread'
 import { api } from '../../../utils/api'
-import type { SubCategory } from '@prisma/client'
-import dynamic from 'next/dynamic'
 import { useRouter } from 'next/router'
 import StateWrapper from '../StateWrapper'
 import { Modal } from '../Modal'
 import { useState } from 'react'
-const PostContentInput = dynamic(import("../PostContentInput"), {
-    ssr: false,
-    loading: () => <p>Loading...</p>
-})
+import usePaths from '../../../hooks/usePaths'
 
 const CreateThreadForm: React.FC = () => {
+    const [subCategoryName, setSubCategoryName] = useState<string | null>(null)
+
     const {
-        control,
         register,
         setValue,
         handleSubmit,
@@ -25,6 +21,7 @@ const CreateThreadForm: React.FC = () => {
         resolver: zodResolver(threadSchemes.create)
     })
 
+    const paths = usePaths()
     const utils = api.useContext()
     const router = useRouter()
     const [open, setOpen] = useState(false)
@@ -32,7 +29,7 @@ const CreateThreadForm: React.FC = () => {
     const createThread = api.thread.create.useMutation({
         onSuccess: (data) => {
             alert(data.title)
-            void router.push(`/threads/${data.id}`)
+            void router.push(paths.thread(data.id))
         },
         onError: () => {
             alert('error')
@@ -54,15 +51,20 @@ const CreateThreadForm: React.FC = () => {
 
     return (
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        <form onSubmit={handleSubmit(onValid, onError)}>
+        <form onSubmit={handleSubmit(onValid, onError)} className='bg-zinc-700 p-3 rounded flex flex-col space-y-3'>
             <button onClick={() => setOpen(true)}>Open</button>
             <Modal openState={[open, setOpen]}>
                 <CategoryWithSubCategories
-                    onSelect={(id) => setValue('subCategoryId', id)}
+                    onSelect={(id, name) => {
+                        setValue('subCategoryId', id)
+                        setSubCategoryName(name)
+                        setOpen(false)
+                    }}
                 />
             </Modal>
             <TextInput
                 id='thread-title'
+                placeholder='Thread title'
                 errorMessage={errors.title?.message}
                 {...register('title')}
             />
@@ -71,8 +73,10 @@ const CreateThreadForm: React.FC = () => {
                 errorMessage={errors.content?.message}
                 {...register('content')}
             />
+            <div>{subCategoryName}</div>
             <TextInput
                 disabled={true}
+                className='hidden'
                 id='thread-subCategoryId'
                 errorMessage={errors.subCategoryId?.message}
                 {...register('subCategoryId')}
@@ -85,7 +89,7 @@ const CreateThreadForm: React.FC = () => {
 export default CreateThreadForm
 
 const CategoryWithSubCategories: React.FC<{
-    onSelect: (id: string) => void
+    onSelect: (id: string, name: string) => void
 }> = ({ onSelect }) => {
     const listQuery = api.category.getAllWithSubCategoriesSmallInfo.useQuery()
 
@@ -95,13 +99,20 @@ const CategoryWithSubCategories: React.FC<{
             isLoading={listQuery.isLoading}
             isError={listQuery.isError}
             NonEmpty={(list) => (
-                <div>
+                <div className='flex flex-col bg-zinc-900 p-3'>
                     {list.map((category) => (
                         <div key={category.id}>
-                            <div>{category.name}</div>
-                            <div>
+                            <div className='bg-red-900 px-3'>{category.name}</div>
+                            <div className='flex flex-col'>
                                 {category.subCategories.map((subCategory) => (
-                                    <button key={subCategory.id} onClick={() => onSelect(subCategory.id)}>{subCategory.name}</button>
+                                    <button
+                                        key={subCategory.id}
+                                        onClick={() => onSelect(subCategory.id, subCategory.name)}
+                                        className='text-start px-3 flex flex-row justify-between min-w-[500px] hover:bg-zinc-800'
+                                    >
+                                        <span>{subCategory.name}</span>
+                                        <span>Threads: {subCategory._count.threads}</span>
+                                    </button>
                                 ))}
                             </div>
                         </div>

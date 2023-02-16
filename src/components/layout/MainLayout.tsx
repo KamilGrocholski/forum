@@ -9,7 +9,7 @@ const MainLayout: React.FC<{ children: JSX.Element | JSX.Element[] }> = ({ child
     return (
         <>
             <Header />
-            <main className={`transition-all duration-300 ease-in-out min-h-screen ${layoutWidth === 'full' ? 'w-full' : 'container'} mx-auto p-3`}>{children}</main>
+            <main className={`transition-all duration-300 ease-in-out min-h-screen ${layoutWidth === 'full' ? 'w-full' : 'container'} mx-auto px-3 py-8`}>{children}</main>
             <Footer />
         </>
     )

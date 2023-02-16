@@ -1,22 +1,18 @@
 import { Disclosure, Tab, Transition } from "@headlessui/react";
 import { type NextPage } from "next";
-import dynamic from "next/dynamic";
-import Link from "next/link";
-import CreateCategoryForm from "../components/common/Forms/CreateCategoryForm";
-import CreateSubCategoryForm from "../components/common/Forms/CreateSubCategoryForm";
-import CreateThreadForm from "../components/common/Forms/CreateThreadForm";
 import StateWrapper from "../components/common/StateWrapper";
 import MainLayout from "../components/layout/MainLayout";
-import { api, RouterOutputs } from "../utils/api";
-import { SlArrowDown } from 'react-icons/sl'
-import { BiCommentDetail } from 'react-icons/bi'
-import { FaComment } from 'react-icons/fa'
 import React, { Fragment } from "react";
+import SidebarForumInfo from "../components/common/SidebarForumInfo";
+import { api, type RouterOutputs } from "../utils/api";
+import { SlArrowDown } from "react-icons/sl";
+import { BiCommentDetail } from "react-icons/bi";
+import usePaths from "../hooks/usePaths";
+import LinkButton from "../components/common/LinkButton";
 
 const Home: NextPage = () => {
 
   const categoriesWithSubCategories = api.category.getAllWithSubCategories.useQuery()
-  const latestThreads = api.thread.getLatest.useQuery()
 
   return (
     <MainLayout>
@@ -43,49 +39,13 @@ const Home: NextPage = () => {
           />
           <ForumActionsInfo />
         </div>
-        <div>
-          <StateWrapper
-            data={latestThreads.data}
-            isLoading={latestThreads.isLoading}
-            isError={latestThreads.isError}
-            NonEmpty={(threads) => (
-              <SidebarForumInfo latestThreads={threads} />
-            )}
-          />
-        </div>
+        <SidebarForumInfo />
       </div>
     </MainLayout>
   );
 };
 
 export default Home;
-
-const SidebarForumInfo: React.FC<{
-  latestThreads: RouterOutputs['thread']['getLatest']
-}> = ({ latestThreads }) => {
-  return (
-    <div className='w-[250px]'>
-      <h1 className='flex gap-3 items-center px-3 text-lg font-semibold'>
-        <FaComment />
-        <span>Latest posts</span>
-      </h1>
-      <div className='bg-zinc-900 p-2 rounded-sm'>
-        {latestThreads.map(thread => (
-          <div key={thread.id}>
-            <div>{thread.user.name}</div>
-            <div>
-              <Link href={`/threads/${thread.id}`} className='hover:underline'>{thread.title}</Link>
-              <div>
-                <span>{thread.subCategory.name}</span>
-                <span>{thread.createdAt.toString()}</span>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
 
 const exampleData = {
   replies: [
@@ -110,9 +70,9 @@ const ForumActionsInfo: React.FC = () => {
   return (
     <Tab.Group>
       <Tab.List>
-        <Tab as={Fragment}>{({ selected }) => <button className={`p-2 rounded-t-sm hover:text-white ${selected ? 'bg-zinc-900' : ''}`}>Latest replies</button>}</Tab>
-        <Tab as={Fragment}>{({ selected }) => <button className={`p-2 rounded-t-sm hover:text-white ${selected ? 'bg-zinc-900' : ''}`}>Latest Threads</button>}</Tab>
-        <Tab as={Fragment}>{({ selected }) => <button className={`p-2 rounded-t-sm hover:text-white ${selected ? 'bg-zinc-900' : ''}`}>Latest updates</button>}</Tab>
+        <Tab as={Fragment}>{({ selected }) => <button className={`p-2 rounded-t-sm hover:text-white ${selected ? 'bg-zinc-900 text-red-900' : ''}`}>Latest replies</button>}</Tab>
+        <Tab as={Fragment}>{({ selected }) => <button className={`p-2 rounded-t-sm hover:text-white ${selected ? 'bg-zinc-900 text-red-900' : ''}`}>Latest Threads</button>}</Tab>
+        <Tab as={Fragment}>{({ selected }) => <button className={`p-2 rounded-t-sm hover:text-white ${selected ? 'bg-zinc-900 text-red-900' : ''}`}>Latest updates</button>}</Tab>
       </Tab.List>
       <Tab.Panels>
         <Tab.Panel className='flex flex-col bg-zinc-900'>
@@ -174,6 +134,8 @@ const CategoryDisclosure: React.FC<{
 }> = ({
   categoryInfo
 }) => {
+    const paths = usePaths()
+
     return (
       <Disclosure as='div' className='mb-6' defaultOpen={true}>
         {({ open }) => (
@@ -207,28 +169,28 @@ const CategoryDisclosure: React.FC<{
                 {categoryInfo.subCategories.map((subCategory) => (
                   <div
                     key={subCategory.id}
-                    className='border-t border-white/30 py-2 px-3 grid grid-cols-4'
+                    className='border-t first:border-none border-white/30 py-2 px-3 grid grid-cols-4 gap-3'
                   >
                     <div className='flex gap-3 col-span-2 items-center'>
                       <BiCommentDetail className='text-2xl text-red-900' />
-                      <Link href={`/forum/${categoryInfo.name}/${subCategory.id}`} className='hover:underline'>
+                      <LinkButton href={paths.subCategoryId(categoryInfo.name, subCategory.id)} className='hover:underline'>
                         {subCategory.name}
-                      </Link>
+                      </LinkButton>
                     </div>
                     <div className='flex justify-end gap-3'>
                       <div>Threads {subCategory._count.threads}</div>
                       <div>Posts {subCategory.threads.reduce((sum, cur) => sum + cur._count.posts, 0)}</div>
                     </div>
                     <div className='flex justify-end'>
-                      <div>
-                        {!subCategory.threads[0]
+                      <div className='min-w-0'>
+                        {!subCategory.threads[0]?.id
                           ? 'No threads'
-                          : <Link
-                            href={`/threads/${subCategory.threads[0]?.id}`}
-                            className='hover:underline'
+                          : <LinkButton
+                            href={paths.thread(subCategory.threads[0].id)}
+                            className='hover:underline truncate block'
                           >
-                            {subCategory.threads[0]?.title}
-                          </Link>}
+                            {subCategory.threads[0].title}
+                          </LinkButton>}
                       </div>
                     </div>
                   </div>
