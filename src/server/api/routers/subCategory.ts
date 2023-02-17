@@ -5,16 +5,22 @@ export const subCategoryRouter = createTRPCRouter({
     threadsPagination: publicProcedure
         .input(subCategorySchemes.getThreads)
         .query(async ({ctx, input}) => {
-            const {subCategoryId, limit, cursor} = input
+            const {subCategoryId, limit, page} = input
+
+            const threadsCount = await ctx.prisma.thread.count({
+                where: {
+                    subCategoryId
+                }
+            })
+
+            const totalPages = Math.ceil(threadsCount / limit)
 
             const items = await ctx.prisma.thread.findMany({
-                take: limit + 1, 
+                skip: page * limit,
+                take: limit, 
                 where: {
                     subCategoryId
                 },
-                cursor: cursor ? {
-                    id: cursor
-                } : undefined,
                 orderBy: {
                     createdAt: 'desc'
                 },
@@ -52,15 +58,9 @@ export const subCategoryRouter = createTRPCRouter({
                 }
             })
 
-            let nextCursor: typeof cursor | undefined = undefined;
-            if (items.length > limit) {
-                const nextItem = items.pop()
-                nextCursor = nextItem?.id
-            }
-
             return {
                 threads: items,
-                nextCursor
+                totalPages
             }
         }),
     create: protectedProcedure

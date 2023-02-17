@@ -1,4 +1,4 @@
-import { useForm, type SubmitHandler, type SubmitErrorHandler } from 'react-hook-form'
+import { useForm, type SubmitHandler, type SubmitErrorHandler, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import TextInput from '../TextInput'
 import { threadSchemes, type ThreadSchemes } from '../../../server/api/schemes/thread'
@@ -8,17 +8,27 @@ import StateWrapper from '../StateWrapper'
 import { Modal } from '../Modal'
 import { useState } from 'react'
 import usePaths from '../../../hooks/usePaths'
+import CustomEditor from '../CustomEditor'
+import { type ContentState, convertToRaw, EditorState, type RawDraftContentState, convertFromRaw } from 'draft-js'
+import { z } from 'zod'
+import dartJsConversion from '../../../utils/dartJsConversion'
 
 const CreateThreadForm: React.FC = () => {
     const [subCategoryName, setSubCategoryName] = useState<string | null>(null)
 
+    const [editorState, setEditorState] = useState<EditorState>(() => EditorState.createEmpty())
+
     const {
+        control,
         register,
         setValue,
         handleSubmit,
         formState: { errors }
-    } = useForm<ThreadSchemes['create']>({
-        resolver: zodResolver(threadSchemes.create)
+    } = useForm<Omit<ThreadSchemes['create'], 'content'>>({
+        resolver: zodResolver(z.object({
+            title: z.string(),
+            subCategoryId: z.string()
+        }))
     })
 
     const paths = usePaths()
@@ -36,17 +46,22 @@ const CreateThreadForm: React.FC = () => {
         }
     })
 
-    const onValid: SubmitHandler<ThreadSchemes['create']> = (data, e) => {
+    const onValid: SubmitHandler<Omit<ThreadSchemes['create'], 'content'>> = (data, e) => {
         e?.preventDefault()
         console.log(data)
-        createThread.mutate(data)
+        const content = dartJsConversion.convertToSaveInDatabase(editorState)
+        createThread.mutate({
+            ...data,
+            content
+        })
     }
 
-    const onError: SubmitErrorHandler<{
-        name: string;
-    }> = (data, e) => {
+    const onError: SubmitErrorHandler<Omit<ThreadSchemes['create'], 'content'>> = (data, e) => {
         e?.preventDefault()
-        console.log(data)
+        console.log({
+            ...data,
+            editorState: dartJsConversion.convertToSaveInDatabase(editorState)
+        })
     }
 
     return (
@@ -68,11 +83,9 @@ const CreateThreadForm: React.FC = () => {
                 errorMessage={errors.title?.message}
                 {...register('title')}
             />
-            <TextInput
-                id='thread-content'
-                errorMessage={errors.content?.message}
-                {...register('content')}
-            />
+
+            <CustomEditor editorState={editorState} onChange={setEditorState} />
+
             <div>{subCategoryName}</div>
             <TextInput
                 disabled={true}

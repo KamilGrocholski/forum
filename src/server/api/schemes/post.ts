@@ -1,4 +1,3 @@
-import { threadBase } from './thread'
 import {z} from 'zod'
 
 export type PostSchemes = {
@@ -9,7 +8,7 @@ export type PostSchemes = {
 
 export const postBase = {
     id: z.string().cuid(),
-    content: z.string().max(5000),
+    content: z.string(),
     userId: z.string().cuid(),
 }
 

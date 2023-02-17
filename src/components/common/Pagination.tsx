@@ -3,26 +3,27 @@ import clsx from "clsx"
 export interface PaginationProps {
     pages: number
     currentPage: number
-    hasNext: boolean
-    hasPrev: boolean
-    goToNext: () => Promise<void>
-    goToPrev: () => Promise<void>
+    goToNext: () => void
+    goToPrev: () => void
     goTo: (page: number) => void
+    className?: string
 }
 
 const Pagination: React.FC<PaginationProps> = ({
     pages,
     currentPage,
-    hasNext,
-    hasPrev,
     goToNext,
     goToPrev,
-    goTo
+    goTo,
+    className
 }) => {
     const pagesArray = Array.from({ length: pages }).map((_, index) => index)
 
     return (
-        <div className='flex'>
+        <div className={clsx(
+            'flex',
+            className
+        )}>
             {currentPage > 0
                 ? <PaginationButton onClick={() => void goToPrev()} className='mr-2 bg-zinc-800 text-zinc-500'>
                     Prev

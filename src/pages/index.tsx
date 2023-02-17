@@ -9,6 +9,8 @@ import { SlArrowDown } from "react-icons/sl";
 import { BiCommentDetail } from "react-icons/bi";
 import usePaths from "../hooks/usePaths";
 import LinkButton from "../components/common/LinkButton";
+import CreateCategoryForm from "../components/common/Forms/CreateCategoryForm";
+import CreateSubCategoryForm from "../components/common/Forms/CreateSubCategoryForm";
 
 const Home: NextPage = () => {
 
@@ -38,6 +40,8 @@ const Home: NextPage = () => {
             )}
           />
           <ForumActionsInfo />
+          <CreateCategoryForm />
+          <CreateSubCategoryForm categoryId={"cle8qqaol0004unds1j32ii15"} />
         </div>
         <SidebarForumInfo />
       </div>

@@ -15,7 +15,7 @@ export const subCategorySchemes = {
     getThreads: z.object({
         subCategoryId: subCategoryBase.id,
         limit: z.number().default(10),
-        cursor: subCategoryBase.id.optional()
+        page: z.number().default(1)
     }),
     create: z.object({
         name: subCategoryBase.name,

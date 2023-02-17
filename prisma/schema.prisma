@@ -136,7 +136,7 @@ model ThreadRating {
 
 model Post {
     id      String @id @default(cuid())
-    content String
+    content Json
 
     user      User       @relation(fields: [userId], references: [id])
     userId    String
@@ -150,8 +150,8 @@ model Post {
     @@index([id, userId, threadId])
     // BRIN: https://www.prisma.io/docs/concepts/components/prisma-schema/indexes#block-range-index-brin
     @@index([createdAt], type: Brin)
-    // SP-GiST: https://www.prisma.io/docs/concepts/components/prisma-schema/indexes#space-partitioned-gist-sp-gist
-    @@index([content], type: SpGist)
+    // GIN: https //www.prisma.io/docs/concepts/components/prisma-schema/indexes#generalized-inverted-index-gin
+    @@index([content], type: Gin)
 }
 
 model View {

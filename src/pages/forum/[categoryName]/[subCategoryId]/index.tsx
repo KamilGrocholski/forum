@@ -17,11 +17,12 @@ const SubCategoryPage: NextPage = () => {
 
   const [page, setPage] = useState(0)
 
-  const threadsPagination = api.subCategory.threadsPagination.useInfiniteQuery({
+  const threadsPagination = api.subCategory.threadsPagination.useQuery({
     subCategoryId,
     limit: 3,
+    page
   }, {
-    getNextPageParam: (lastPage) => lastPage.nextCursor
+    keepPreviousData: true
   })
 
 
@@ -33,8 +34,20 @@ const SubCategoryPage: NextPage = () => {
         isError={threadsPagination.isError}
         NonEmpty={(threads) => (
           <>
+            <Pagination
+              className='mb-5'
+              currentPage={page}
+              pages={threads.totalPages}
+              goTo={(page) => setPage(page)}
+              goToNext={() => {
+                setPage(prev => prev + 1)
+              }}
+              goToPrev={() => {
+                setPage(prev => prev - 1)
+              }}
+            />
             <div className='flex flex-col space-y-3'>
-              {threads.pages[page]?.threads.map((thread) => (
+              {threads.threads.map((thread) => (
                 <div key={thread.id} className='grid grid-cols-6 items-center'>
                   <div>
                     <ImageWithFallback
@@ -75,17 +88,14 @@ const SubCategoryPage: NextPage = () => {
               ))}
             </div>
             <Pagination
+              className='mt-5'
               currentPage={page}
-              hasNext={!!threadsPagination.hasNextPage}
-              hasPrev={!!threadsPagination.hasPreviousPage}
-              pages={threads.pages.length}
+              pages={threads.totalPages}
               goTo={(page) => setPage(page)}
-              goToNext={async () => {
-                await threadsPagination.fetchNextPage()
+              goToNext={() => {
                 setPage(prev => prev + 1)
               }}
-              goToPrev={async () => {
-                await threadsPagination.fetchPreviousPage()
+              goToPrev={() => {
                 setPage(prev => prev - 1)
               }}
             />
