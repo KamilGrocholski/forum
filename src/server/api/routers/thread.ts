@@ -25,6 +25,13 @@ export const threadRouter = createTRPCRouter({
                         select: {
                             id: true,
                             content: true,
+                            user: {
+                                select: {
+                                    image: true,
+                                    id: true,
+                                    name: true
+                                }
+                            }
                         }
                     }
                 }

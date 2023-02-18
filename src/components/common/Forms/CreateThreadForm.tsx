@@ -94,7 +94,7 @@ const CreateThreadForm: React.FC = () => {
                 errorMessage={errors.subCategoryId?.message}
                 {...register('subCategoryId')}
             />
-            <button>Create</button>
+            <button className='w-fit bg-red-900 px-3 py-1 rounded'>Create</button>
         </form>
     )
 }
