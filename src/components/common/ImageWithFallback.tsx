@@ -2,7 +2,7 @@ import Image, { type StaticImageData, type ImageProps } from 'next/image'
 import { forwardRef, useState } from 'react'
 
 interface ImageWithFallbackProps extends ImageProps {
-    fallbackSrc: string | string | StaticImageData
+    fallbackSrc: string | StaticImageData
     alt: string
 }
 
@@ -21,7 +21,6 @@ const ImageWithFallback = forwardRef<HTMLImageElement, ImageWithFallbackProps>((
             alt={alt}
             ref={ref}
             onError={(error) => {
-                console.log(error)
                 setImgSrc(fallbackSrc)
             }}
             onLoadingComplete={(result) => {

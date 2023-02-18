@@ -3,6 +3,7 @@ import { categoryRouter } from "./routers/category";
 import { threadRouter } from "./routers/thread";
 import { postRouter } from "./routers/post";
 import { subCategoryRouter } from "./routers/subCategory";
+import { userRouter } from "./routers/user";
 
 /**
  * This is the primary router for your server.
@@ -13,7 +14,8 @@ export const appRouter = createTRPCRouter({
   category: categoryRouter,
   subCategory: subCategoryRouter,
   thread: threadRouter,
-  post: postRouter
+  post: postRouter,
+  user: userRouter
 });
 
 // export type definition of API

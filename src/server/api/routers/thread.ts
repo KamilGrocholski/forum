@@ -3,6 +3,11 @@ import { threadSchemes } from "../schemes/thread";
 import { createTRPCRouter, publicProcedure, protectedProcedure, imperatorProcedure } from "../trpc";
 
 export const threadRouter = createTRPCRouter({
+    count: publicProcedure
+        .query(({ctx}) => {
+
+            return ctx.prisma.thread.count()
+        }),
     getById: publicProcedure
         .input(threadSchemes.getById)
         .query(({ctx, input}) => {
@@ -15,7 +20,29 @@ export const threadRouter = createTRPCRouter({
                 select: {
                     id: true,
                     title: true,
-                    createdAt: true
+                    createdAt: true,
+                    posts: {
+                        select: {
+                            id: true,
+                            content: true,
+                            createdAt: true,
+                            user: {
+                                select: {
+                                    image: true,
+                                    id: true,
+                                    name: true,
+                                    role: true,
+                                    // createdAt: true,
+                                    _count: {
+                                        select: {
+                                            posts: true,
+                                            threads: true
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             })
         }),
@@ -31,7 +58,8 @@ export const threadRouter = createTRPCRouter({
                     subCategory: {
                         select: {
                             name: true,
-                            id: true
+                            id: true,
+                            category: true
                         }                        
                     },
                     user: {
@@ -57,13 +85,19 @@ export const threadRouter = createTRPCRouter({
     create: protectedProcedure
         .input(threadSchemes.create)
         .mutation(({ctx, input}) => {
-            const { title, subCategoryId } = input
+            const { title, subCategoryId, content } = input
 
             return ctx.prisma.thread.create({
                 data: {
                     title,
                     subCategoryId,
-                    userId: ctx.session.user.id
+                    userId: ctx.session.user.id,
+                    posts: {
+                        create: {
+                            content,
+                            userId: ctx.session.user.id
+                        }
+                    }
                 }
             })
         }),
