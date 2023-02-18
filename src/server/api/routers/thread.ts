@@ -25,11 +25,20 @@ export const threadRouter = createTRPCRouter({
                         select: {
                             id: true,
                             content: true,
+                            createdAt: true,
                             user: {
                                 select: {
                                     image: true,
                                     id: true,
-                                    name: true
+                                    name: true,
+                                    role: true,
+                                    // createdAt: true,
+                                    _count: {
+                                        select: {
+                                            posts: true,
+                                            threads: true
+                                        }
+                                    }
                                 }
                             }
                         }

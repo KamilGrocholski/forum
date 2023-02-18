@@ -4,12 +4,19 @@ import { useRouter } from "next/router"
 import { useState } from "react"
 import CustomEditor from "../../components/common/CustomEditor"
 import CreatePostForm from "../../components/common/Forms/CreatePostForm"
-import ImageWithFallback from "../../components/common/ImageWithFallback"
 import SessionStateWrapper from "../../components/common/SessionStateWrapper"
 import StateWrapper from "../../components/common/StateWrapper"
 import MainLayout from "../../components/layout/MainLayout"
 import { api, type RouterOutputs } from "../../utils/api"
 import dartJsConversion from "../../utils/dartJsConversion"
+import { FaComment } from 'react-icons/fa'
+import { MdForum } from 'react-icons/md'
+import { USER_ROLE_THINGS } from "../../utils/userRoleThings"
+import { formatDateToDisplay } from "../../utils/formatDateToDisplay"
+import usePaths from "../../hooks/usePaths"
+import LinkButton from "../../components/common/LinkButton"
+import clsx from "clsx"
+import UserAvatar from "../../components/common/UserAvatar"
 
 const ThreadPage: NextPage = () => {
     const router = useRouter()
@@ -29,6 +36,7 @@ const ThreadPage: NextPage = () => {
                                 <Post
                                     key={post.id}
                                     content={post.content?.toString() ?? ''}
+                                    createdAt={post.createdAt}
                                     user={post.user}
                                     id={post.id}
                                 />
@@ -39,13 +47,11 @@ const ThreadPage: NextPage = () => {
                                 Guest={(signIn) => <button onClick={() => void signIn('discord')}>Sign in to post</button>}
                                 User={(sessionData) => (
                                     <>
-                                        <ImageWithFallback
-                                            src={sessionData.user.image ?? ''}
-                                            fallbackSrc={''}
-                                            alt=''
+                                        <UserAvatar
+                                            src={sessionData.user.image}
                                             width={50}
                                             height={50}
-                                            className='rounded-full h-fit w-fit'
+                                            alt=''
                                         />
                                         <CreatePostForm threadId={thread.id} />
                                     </>
@@ -66,21 +72,34 @@ const Post: React.FC<NonNullable<RouterOutputs['thread']['getById']>['posts'][nu
 
     const [editorState, setEditorState] = useState<EditorState>(dartJsConversion.convertToRead(EditorState.createEmpty(), post.content?.toString() ?? ''))
 
+    const paths = usePaths()
+
     return (
-        <div className='bg-zinc-900 p-3 rounded flex gap-3 h-full'>
+        <div className='bg-zinc-900 p-3 rounded flex gap-5 h-full'>
             <div className='w-1/6'>
-                <ImageWithFallback
-                    src={post.user.image ?? ''}
-                    fallbackSrc={''}
-                    alt=''
-                    width={50}
-                    height={50}
-                    className='rounded-full w-fit h-fit'
-                />
-                <div>{post.user.name}</div>
+                <div>
+                    <LinkButton
+                        className='flex items-center flex-col'
+                        href={paths.user(post.user.id)}
+                    >
+                        <UserAvatar
+                            width={50}
+                            height={50}
+                            alt=''
+                            src={post.user.image}
+                        />
+                        <div className='font-semibold text-lg'>{post.user.name}</div>
+                    </LinkButton>
+                    <div className={clsx(USER_ROLE_THINGS[post.user.role].textColor, 'text-center')}>{post.user.role}</div>
+                </div>
+                <div>
+                    <div className='flex gap-1 items-center'><MdForum /><span>{post.user._count.threads}</span></div>
+                    <div className='flex gap-1 items-center'><FaComment /><span>{post.user._count.posts}</span></div>
+                </div>
             </div>
             <div className='w-0.5 bg-zinc-800'></div>
-            <div>
+            <div className='flex flex-col space-y-3'>
+                <div className='font-semibold text-sm'>{formatDateToDisplay(post.createdAt)}</div>
                 {mode === 'view' ?
                     <CustomEditor
                         editorState={editorState}

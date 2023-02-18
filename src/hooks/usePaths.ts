@@ -1,7 +1,10 @@
-import type { SubCategory, Thread } from "@prisma/client"
+import type { SubCategory, Thread, User } from "@prisma/client"
 
 const usePaths = () => {
     const paths = {
+        user(userId: User['id']) {
+            return `/users/${userId}` as const
+        },
         thread(threadId: Thread['id']) {
             return `/threads/${threadId}` as const
         },

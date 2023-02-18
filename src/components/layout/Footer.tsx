@@ -8,6 +8,9 @@ import LinkButton from "../common/LinkButton"
 import { api } from "../../utils/api"
 import StateWrapper from "../common/StateWrapper"
 import SmallLoader from "../common/SmallLoader"
+import { USER_ROLE_THINGS } from "../../utils/userRoleThings"
+import ImageWithFallback from "../common/ImageWithFallback"
+import UserAvatar from "../common/UserAvatar"
 
 const Footer: React.FC = () => {
     const layoutWidth = appStore(state => state.layoutWidth)
@@ -15,6 +18,7 @@ const Footer: React.FC = () => {
     const threadsCount = api.thread.count.useQuery()
     const postsCount = api.post.count.useQuery()
     const usersCount = api.user.count.useQuery()
+    const lastNewUser = api.user.getLastNewUser.useQuery()
 
     return (
         <footer className='border-t-4 border-red-900 bg-zinc-900 pt-3'>
@@ -77,6 +81,26 @@ const Footer: React.FC = () => {
                                     isLoading={usersCount.isLoading}
                                     isError={usersCount.isError}
                                     NonEmpty={(count) => <span>{count}</span>}
+                                    Loading={<SmallLoader />}
+                                />
+                            </div>
+                            <div className='flex justify-between items-center'>
+                                <span className='whitespace-nowrap mr-2'>New member:</span>
+                                <StateWrapper
+                                    data={lastNewUser.data}
+                                    isLoading={lastNewUser.isLoading}
+                                    isError={lastNewUser.isError}
+                                    NonEmpty={(user) =>
+                                        <LinkButton className='flex gap-1 items-center' href={paths.user(user.id)}>
+                                            <UserAvatar
+                                                width={10}
+                                                height={10}
+                                                alt=''
+                                                src={user.image}
+                                            />
+                                            <span className={`truncate block ${USER_ROLE_THINGS[user.role].textColor}`}>{user.name}</span>
+                                        </LinkButton>
+                                    }
                                     Loading={<SmallLoader />}
                                 />
                             </div>

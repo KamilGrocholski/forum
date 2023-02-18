@@ -6,10 +6,11 @@ import { BoldButton, ItalicButton, UnderlineButton, CodeButton, UnorderedListBut
 import { type EditorProps } from "draft-js";
 
 interface CustomEditorProps extends EditorProps {
-    ok?: number
+    readOnly?: boolean
 }
 
 const CustomEditor: React.FC<CustomEditorProps> = ({
+    readOnly = false,
     ...rest
 }) => {
 
@@ -31,22 +32,25 @@ const CustomEditor: React.FC<CustomEditorProps> = ({
                 className="editor"
                 onClick={() => editorRef.current && editorRef.current.focus()}
             >
-                <Toolbar>
-                    {(externalProps) => (
-                        <div className='flex'>
-                            <BoldButton {...externalProps} />
-                            <ItalicButton {...externalProps} />
-                            <UnderlineButton {...externalProps} />
-                            <CodeButton {...externalProps} />
-                            <Separator />
-                            <UnorderedListButton {...externalProps} />
-                            <OrderedListButton {...externalProps} />
-                        </div>
-                    )}
-                </Toolbar>
+                {readOnly
+                    ? null
+                    : <Toolbar>
+                        {(externalProps) => (
+                            <div className='flex'>
+                                <BoldButton {...externalProps} />
+                                <ItalicButton {...externalProps} />
+                                <UnderlineButton {...externalProps} />
+                                <CodeButton {...externalProps} />
+                                <Separator />
+                                <UnorderedListButton {...externalProps} />
+                                <OrderedListButton {...externalProps} />
+                            </div>
+                        )}
+                    </Toolbar>}
                 <Editor
-                    plugins={plugins}
+                    plugins={readOnly ? undefined : plugins}
                     ref={(editor) => (editorRef.current = editor)}
+                    readOnly={readOnly}
                     {...rest}
                 />
             </div>

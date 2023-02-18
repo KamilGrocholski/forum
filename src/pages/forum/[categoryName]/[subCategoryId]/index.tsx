@@ -5,9 +5,9 @@ import MainLayout from "../../../../components/layout/MainLayout"
 import { api } from "../../../../utils/api"
 import usePaths from "../../../../hooks/usePaths"
 import LinkButton from "../../../../components/common/LinkButton"
-import ImageWithFallback from "../../../../components/common/ImageWithFallback"
 import { useState } from "react"
 import Pagination from "../../../../components/common/Pagination"
+import UserAvatar from "../../../../components/common/UserAvatar"
 
 const SubCategoryPage: NextPage = () => {
   const router = useRouter()
@@ -46,44 +46,56 @@ const SubCategoryPage: NextPage = () => {
                 setPage(prev => prev - 1)
               }}
             />
-            <div className='flex flex-col space-y-3'>
+            <div className='flex flex-col p-3 bg-zinc-900 rounded'>
               {threads.threads.map((thread) => (
-                <div key={thread.id} className='grid grid-cols-6 items-center'>
-                  <div>
-                    <ImageWithFallback
-                      src={thread.user.image ?? ''}
-                      fallbackSrc={''}
-                      alt=''
-                      height={50}
+                <div key={thread.id} className='grid grid-cols-6 items-center border-b py-3 border-zinc-700 last:border-none hover:bg-zinc-800'>
+
+                  {/* Thread creator  */}
+                  <LinkButton href={paths.user(thread.user.id)} className='group w-fit relative'>
+                    <UserAvatar
                       width={50}
-                      className='rounded-full'
+                      height={50}
+                      alt=''
+                      src={thread.user.image}
+                      className='group-hover:outline outline-red-900 group-hover:scale-105 transition-transform duration-300 ease-in-out'
                     />
-                  </div>
+                    <div className='absolute top-0 left-24 group-hover:block hidden bg-zinc-800 px-3 py-1 rounded'>{thread.user.name}</div>
+                  </LinkButton>
+
+                  {/* Thread link  */}
                   <div className='col-span-2 min-w-0'>
-                    <LinkButton href={paths.thread(thread.id)} className='hover:underline truncate block'>
+                    <LinkButton href={paths.thread(thread.id)} className='hover:underline truncate block font-semibold'>
                       {thread.title}
                     </LinkButton>
                   </div>
+
+                  {/* Thread rating  */}
                   <div>ratings</div>
                   <div>
                     <div>Replies: {thread._count.posts}</div>
                     <div>Views: {thread._count.views}</div>
                   </div>
+
+                  {/* Latest post's creator */}
                   <div>
-                    <div>
-                      {thread.posts[0]?.user.name}
-                    </div>
-                    <div>
-                      <ImageWithFallback
-                        src={thread.posts[0]?.user.image ?? ''}
-                        fallbackSrc={''}
-                        height={50}
-                        width={50}
-                        alt=''
-                        className='rounded-full'
-                      />
-                    </div>
+                    {thread.posts[0]?.user.id
+                      ? <LinkButton
+                        href={paths.user(thread.posts[0].user.id)}
+                        className='flex gap-2 items-center'
+                      >
+                        <UserAvatar
+                          width={20}
+                          height={20}
+                          alt=''
+                          src={thread.posts[0].user.image}
+                        />
+                        <span className='truncate block'>
+                          {thread.posts[0].user.name}
+                        </span>
+                      </LinkButton>
+                      : <span>No posts</span>}
                   </div>
+
                 </div>
               ))}
             </div>
