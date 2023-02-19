@@ -9,6 +9,7 @@ const UserProfilePage: NextPage = () => {
   const router = useRouter()
   const userId = router.query.userId as string
   const userProfileQuery = api.user.getProfile.useQuery({ userId })
+  const w = api.user.changeRole.useMutation()
 
   return (
     <MainLayout>
@@ -25,6 +26,7 @@ const UserProfilePage: NextPage = () => {
               src={user.image}
             />
             <div className='text-xl font-semibold'>{user.name}</div>
+            <button onClick={() => w.mutate({ userId, role: 'imperator' })}>Role</button>
           </div>
         )}
       />

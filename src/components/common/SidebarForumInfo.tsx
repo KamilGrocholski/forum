@@ -6,6 +6,7 @@ import Image from 'next/image'
 import StateWrapper from "./StateWrapper"
 import usePaths from "../../hooks/usePaths"
 import LinkButton from "./LinkButton"
+import UserAvatar from "./UserAvatar"
 
 const SidebarForumInfo: React.FC = () => {
     const paths = usePaths()
@@ -13,7 +14,7 @@ const SidebarForumInfo: React.FC = () => {
     // const latestPosts = api.post.getLatest.useQuery()
 
     return (
-        <div className='w-[250px]'>
+        <div className='w-[300px]'>
             <h1 className='flex gap-3 items-center px-3 text-lg font-semibold'>
                 <FaComment />
                 <span>Latest posts</span>
@@ -28,14 +29,14 @@ const SidebarForumInfo: React.FC = () => {
                             {
                                 latestThreads.map(thread => (
                                     <div key={thread.id} className='flex gap-3 items-center'>
-                                        <div className='min-w-fit'>
-                                            <Image
-                                                src={thread.user.image ?? ''}
+                                        <LinkButton href={paths.user(thread.user.id)} className='min-w-fit'>
+                                            <UserAvatar
+                                                src={thread.user.image}
                                                 alt=''
                                                 height={30}
                                                 width={30}
                                             />
-                                        </div>
+                                        </LinkButton>
                                         <div className='min-w-0'>
                                             <LinkButton
                                                 href={paths.thread(thread.id)}

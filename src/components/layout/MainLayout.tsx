@@ -1,7 +1,6 @@
 import { appStore } from "../../store/appStore"
 import Footer from "./Footer"
 import Header from "./Header"
-import SideNav from "./SideNav"
 
 const MainLayout: React.FC<{ children: JSX.Element | JSX.Element[] }> = ({ children }) => {
     const layoutWidth = appStore(state => state.layoutWidth)

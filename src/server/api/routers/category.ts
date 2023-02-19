@@ -27,10 +27,16 @@ export const categoryRouter = createTRPCRouter({
         .query(({ctx}) => {
 
             return ctx.prisma.category.findMany({
+                orderBy: {
+                    name: 'asc'
+                }, 
                 select: {
                     id: true,
                     name: true,
                     subCategories: {
+                        orderBy: {
+                            name: 'asc'
+                        }, 
                         select: {
                             id: true,
                             name: true,
