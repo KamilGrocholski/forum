@@ -65,7 +65,7 @@ const CreatePostForm: React.FC<{
 
         return (
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
-            <form onSubmit={handleSubmit(onValid, onError)} className='p-3 rounded flex flex-col space-y-3'>
+            <form onSubmit={handleSubmit(onValid, onError)} className='p-3 rounded flex flex-col space-y-12'>
                 <CustomEditor editorState={editorState} onChange={setEditorState} />
 
                 <button className='w-fit bg-red-900 px-3 py-1 rounded'>Create</button>

@@ -8,6 +8,7 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
     size?: keyof typeof SIZE
     variant?: keyof typeof VARIANT
     className?: string
+    icon?: React.ReactNode
 }
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>((props, ref) => {
@@ -17,6 +18,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>((props, ref) => {
         loading,
         disabled,
         variant = 'primary',
+        icon,
         className,
         ...rest
     } = props
@@ -38,7 +40,10 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>((props, ref) => {
         >
             {loading
                 ? <span className='flex gap-2 items-center'> <AiOutlineLoading3Quarters className='animate-spin' />{children}</span>
-                : children}
+                : <span className='flex items-center'>
+                    {icon ? <span className='mr-2'>{icon}</span> : null}
+                    <span>{children}</span>
+                </span>}
         </button>
     )
 })
@@ -48,7 +53,7 @@ Button.displayName = 'Button'
 export default Button
 
 const SIZE = {
-    sm: '',
+    sm: 'px-1.5 py-0.5 text-sm',
     md: 'px-3 py-1 text-md',
     lg: '',
     xl: ''
@@ -56,5 +61,5 @@ const SIZE = {
 
 const VARIANT = {
     primary: 'bg-red-900 hover:bg-red-800',
-    secondary: 'bg-zinc-500 hover:bg-zinc-400'
+    secondary: 'bg-zinc-700 hover:bg-zinc-600'
 } as const

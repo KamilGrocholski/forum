@@ -5,7 +5,7 @@ import MainLayout from "../../../../components/layout/MainLayout"
 import { api } from "../../../../utils/api"
 import usePaths from "../../../../hooks/usePaths"
 import LinkButton from "../../../../components/common/LinkButton"
-import { useState } from "react"
+import { useMemo } from "react"
 import Pagination from "../../../../components/common/Pagination"
 import UserAvatar from "../../../../components/common/UserAvatar"
 
@@ -13,9 +13,13 @@ const SubCategoryPage: NextPage = () => {
   const router = useRouter()
   const subCategoryId = router.query.subCategoryId as string
   const pageFromQuery = router.query.page as string
+  const parsedPage = pageFromQuery ? parseInt(pageFromQuery) : 0
   const paths = usePaths()
 
-  const [page, setPage] = useState(0)
+  // const [page, setPage] = useState(() => parsedPage ?? 0)
+  const page = useMemo(() => {
+    return parsedPage
+  }, [parsedPage])
 
   const threadsPagination = api.subCategory.threadsPagination.useQuery({
     subCategoryId,
@@ -25,6 +29,21 @@ const SubCategoryPage: NextPage = () => {
     keepPreviousData: true
   })
 
+  const setPageQuery = (page: number) => {
+    void router.replace(
+      {
+        pathname: router.pathname,
+        query: {
+          ...router.query,
+          page
+        }
+      },
+      undefined,
+      {
+        shallow: true
+      }
+    )
+  }
 
   return (
     <MainLayout>
@@ -38,12 +57,12 @@ const SubCategoryPage: NextPage = () => {
               className='mb-5'
               currentPage={page}
               pages={threads.totalPages}
-              goTo={(page) => setPage(page)}
+              goTo={(newPage) => setPageQuery(newPage)}
               goToNext={() => {
-                setPage(prev => prev + 1)
+                setPageQuery(page + 1)
               }}
               goToPrev={() => {
-                setPage(prev => prev - 1)
+                setPageQuery(page - 1)
               }}
             />
             <div className='flex flex-col p-3 bg-zinc-900 rounded'>
@@ -103,12 +122,12 @@ const SubCategoryPage: NextPage = () => {
               className='mt-5'
               currentPage={page}
               pages={threads.totalPages}
-              goTo={(page) => setPage(page)}
+              goTo={(newPage) => setPageQuery(newPage)}
               goToNext={() => {
-                setPage(prev => prev + 1)
+                setPageQuery(page + 1)
               }}
               goToPrev={() => {
-                setPage(prev => prev - 1)
+                setPageQuery(page - 1)
               }}
             />
           </>

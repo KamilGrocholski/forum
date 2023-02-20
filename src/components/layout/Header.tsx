@@ -1,6 +1,5 @@
 import Link from "next/link"
-import { useRouter } from "next/router"
-import { Fragment } from "react"
+import { Fragment, useState } from "react"
 import { appStore } from "../../store/appStore"
 import SessionStateWrapper from "../common/SessionStateWrapper"
 import { AiOutlineColumnWidth } from 'react-icons/ai'
@@ -11,9 +10,10 @@ import type { Role } from "@prisma/client"
 import usePaths from "../../hooks/usePaths"
 import UserAvatar from "../common/UserAvatar"
 import { USER_ROLE_THINGS } from "../../utils/userRoleThings"
+import { Modal } from "../common/Modal"
+import LiveSearch from "../common/LiveSearch"
 
 const Header = () => {
-    const router = useRouter()
     const paths = usePaths()
 
     const layoutWidth = appStore(state => state.layoutWidth)
@@ -34,11 +34,25 @@ const Header = () => {
     const links: { [key in Role]: { href: string, label: string }[] } = {
         user: [...commonLinks],
         admin: [...commonLinks],
-        imperator: [...commonLinks],
+        imperator: [
+            ...commonLinks,
+            { href: '/imperator-dashboard', label: 'Imperator dashboard' }
+        ],
     }
+
+    const liveSearchOpenState = useState(false)
 
     return (
         <header className='flex items-center justify-between h-24 border-b border-zinc-800 w-full sticky top-0 z-20 bg-zinc-900'>
+            <Modal openState={liveSearchOpenState}>
+                <LiveSearch<{ tag: string }>
+                    onSearch={(query) => console.log(query)}
+                    extractQuery={(suggestion) => suggestion.tag}
+                    fetchSuggestions={(query) => [{ tag: 'OK' }, { tag: 'Wut' }].filter(item => item.tag.startsWith(query))}
+                    renderSuggestion={(suggestion) => <div>{suggestion.tag}</div>}
+                    extractSuggestionKey={(suggestion) => suggestion.tag}
+                />
+            </Modal>
             <div className={`flex flex-col h-full px-3 mx-auto ${layoutWidth === 'container' ? 'container' : 'w-full'}`}>
                 <div className='flex items-end justify-between w-full h-full'>
                     <Link href={paths.home()}><span className='text-lg font-bold'>Logo</span></Link>
@@ -53,15 +67,7 @@ const Header = () => {
                             )}
                             User={({ user: { role } }) => (
                                 <>
-                                    {role === 'user'
-                                        ? links.user.map((link) => <Link key={link.label} href={link.href}>{link.label}</Link>)
-                                        : role === 'admin'
-                                            ? links.user.map((link) => <Link key={link.label} href={link.href}>{link.label}</Link>)
-                                            : role === 'imperator'
-                                                ? links.user.map((link) => <Link key={link.label} href={link.href}>{link.label}</Link>)
-                                                : commonLinks.map((link) => (
-                                                    <Link key={link.label} href={link.href}>{link.label}</Link>
-                                                ))}
+                                    {links[role].map((link) => <Link key={link.label} href={link.href}>{link.label}</Link>)}
                                 </>
                             )}
                         />
@@ -74,7 +80,7 @@ const Header = () => {
                                     <UserAccountMenu image={sessionData.user.image ?? ''} name={sessionData.user.name ?? ''} role={sessionData.user.role} signOut={signOut} />
                                     <button onClick={toggleLayoutWidth}><FiMail /></button>
                                     <button onClick={toggleLayoutWidth}><BiBell /></button>
-                                    <button onClick={toggleLayoutWidth}><FiSearch /></button>
+                                    <button onClick={() => liveSearchOpenState[1](true)}><FiSearch /></button>
                                     <button onClick={toggleLayoutWidth}><AiOutlineColumnWidth /></button>
                                 </div>
                             )}

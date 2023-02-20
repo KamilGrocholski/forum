@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import createToolbarPlugin from '@draft-js-plugins/static-toolbar'
 import { BoldButton, ItalicButton, UnderlineButton, CodeButton, UnorderedListButton, OrderedListButton } from "@draft-js-plugins/buttons";
 import { type EditorProps } from "draft-js";
+import 'draft-js/dist/Draft.css';
 
 interface CustomEditorProps extends EditorProps {
     readOnly?: boolean
@@ -27,33 +28,31 @@ const CustomEditor: React.FC<CustomEditorProps> = ({
     const editorRef = useRef<Editor | null>(null);
 
     return (
-        <div>
-            <div
-                className="editor"
-                onClick={() => editorRef.current && editorRef.current.focus()}
-            >
-                {readOnly
-                    ? null
-                    : <Toolbar>
-                        {(externalProps) => (
-                            <div className='flex'>
-                                <BoldButton {...externalProps} />
-                                <ItalicButton {...externalProps} />
-                                <UnderlineButton {...externalProps} />
-                                <CodeButton {...externalProps} />
-                                <Separator />
-                                <UnorderedListButton {...externalProps} />
-                                <OrderedListButton {...externalProps} />
-                            </div>
-                        )}
-                    </Toolbar>}
-                <Editor
-                    plugins={readOnly ? undefined : plugins}
-                    ref={(editor) => (editorRef.current = editor)}
-                    readOnly={readOnly}
-                    {...rest}
-                />
-            </div>
+        <div
+            className={`editor ${readOnly ? '' : 'readonly-editor'} min-h-[12rem] w-full`}
+            onClick={() => editorRef.current && editorRef.current.focus()}
+        >
+            {readOnly
+                ? null
+                : <Toolbar>
+                    {(externalProps) => (
+                        <div className='flex'>
+                            <BoldButton {...externalProps} />
+                            <ItalicButton {...externalProps} />
+                            <UnderlineButton {...externalProps} />
+                            <CodeButton {...externalProps} />
+                            <Separator />
+                            <UnorderedListButton {...externalProps} />
+                            <OrderedListButton {...externalProps} />
+                        </div>
+                    )}
+                </Toolbar>}
+            <Editor
+                plugins={readOnly ? undefined : plugins}
+                ref={(editor) => (editorRef.current = editor)}
+                readOnly={readOnly}
+                {...rest}
+            />
         </div>
     );
 };

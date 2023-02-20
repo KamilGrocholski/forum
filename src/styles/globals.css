@@ -10,10 +10,24 @@
     }
 
     body {
-        @apply bg-black text-white;
+        @apply bg-gray-900 text-white;
     }
 
     input {
         @apply bg-zinc-900 text-white;
     }
+}
+
+.editor {
+    height: 100%;
+    width: 100%;
+}
+
+.editor .DraftEditor-editorContainer {
+  width:100%;
+  height:100%;
+}
+
+.readonly-editor .DraftEditor-editorContainer {
+    background-color: rgb(53, 53, 56);
 }

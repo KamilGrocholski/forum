@@ -2,7 +2,6 @@ import { FaComment } from "react-icons/fa"
 import { api } from "../../utils/api"
 import { formatDateToDisplay } from "../../utils/formatDateToDisplay"
 import Dot from "./Dot"
-import Image from 'next/image'
 import StateWrapper from "./StateWrapper"
 import usePaths from "../../hooks/usePaths"
 import LinkButton from "./LinkButton"
