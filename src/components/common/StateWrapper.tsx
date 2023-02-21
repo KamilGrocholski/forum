@@ -20,10 +20,11 @@ const StateWrapper = <T,>({
     Loading = DefaultLoading
 }: StateWrapperProps<T>) => {
     if (isLoading) return <>{Loading}</>
+
     if (isError) return <>{Error}</>
 
     if (isEmpty) return <>{Empty}</>
-    // When data is an array
+
     if (Array.isArray(data) && data.length === 0) return <>{Empty}</>
 
     if (data === undefined || data === null) return <>{Empty}</>

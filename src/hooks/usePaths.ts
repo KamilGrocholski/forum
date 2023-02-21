@@ -11,6 +11,10 @@ const usePaths = () => {
         subCategoryId(categoryName: string, subCategoryId: SubCategory['id'], page = 0) {
             return `/forum/${categoryName}/${subCategoryId}?page=${page}` as const
         },
+        threadPageWithPostIndex(currentPage: number, limit: number, threadId: Thread['id'], postIndex: number) {
+            const knownPageToGo = Math.floor(postIndex / limit)
+            return `/threads/${threadId}?page=${knownPageToGo}&#${postIndex}` as const
+        },
         postThread() {
             return '/post-thread' as const
         },

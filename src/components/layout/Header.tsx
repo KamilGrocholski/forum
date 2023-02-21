@@ -12,6 +12,7 @@ import UserAvatar from "../common/UserAvatar"
 import { USER_ROLE_THINGS } from "../../utils/userRoleThings"
 import { Modal } from "../common/Modal"
 import LiveSearch from "../common/LiveSearch"
+import LinkButton from "../common/LinkButton"
 
 const Header = () => {
     const paths = usePaths()
@@ -77,7 +78,7 @@ const Header = () => {
                             Guest={(signIn) => <button onClick={() => void signIn('discord')}>Sign in</button>}
                             User={(sessionData, signOut) => (
                                 <div className='flex gap-3 text-lg items-center text-zinc-400 h-fit'>
-                                    <UserAccountMenu image={sessionData.user.image ?? ''} name={sessionData.user.name ?? ''} role={sessionData.user.role} signOut={signOut} />
+                                    <UserAccountMenu image={sessionData.user.image ?? ''} id={sessionData.user.id} name={sessionData.user.name ?? ''} role={sessionData.user.role} signOut={signOut} />
                                     <button onClick={toggleLayoutWidth}><FiMail /></button>
                                     <button onClick={toggleLayoutWidth}><BiBell /></button>
                                     <button onClick={() => liveSearchOpenState[1](true)}><FiSearch /></button>
@@ -102,16 +103,20 @@ const Header = () => {
 export default Header
 
 const UserAccountMenu: React.FC<{
+    id: string,
     image: string
     name: string
     role: Role
     signOut: () => Promise<void>
 }> = ({
+    id,
     image,
     name,
     role,
     signOut
 }) => {
+        const paths = usePaths()
+
         return (
             <Menu as="div" className="relative inline-block text-left">
                 <div>
@@ -150,6 +155,11 @@ const UserAccountMenu: React.FC<{
                                         <div className={USER_ROLE_THINGS[role].textColor}>{role}</div>
                                     </div>
                                 </div>
+                            </Menu.Item>
+                        </div>
+                        <div className='px-1 py-1'>
+                            <Menu.Item>
+                                <LinkButton href={paths.user(id)}>My profile</LinkButton>
                             </Menu.Item>
                         </div>
                         <div className="px-1 py-1">

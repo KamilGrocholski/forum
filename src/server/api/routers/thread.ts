@@ -1,8 +1,73 @@
+import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { threadSchemes } from "../schemes/thread";
 import { createTRPCRouter, publicProcedure, protectedProcedure, imperatorProcedure } from "../trpc";
 
 export const threadRouter = createTRPCRouter({
+    postsPagination: publicProcedure
+        .input(threadSchemes.getPosts)
+        .query(async ({ctx, input}) => {
+            const { limit, threadId, page } = input
+
+            const postsCount = await ctx.prisma.post.count({
+                where: {
+                    threadId
+                }
+            })
+
+            if (!postsCount) throw new TRPCError({code: 'INTERNAL_SERVER_ERROR'})
+
+            const totalPages = Math.ceil(postsCount / limit)
+
+            const thread = await ctx.prisma.thread.findUnique({
+                where: {
+                    id: threadId
+                }, 
+                select: {
+                    id: true,
+                    title: true,
+                    createdAt: true,
+                }
+            })
+
+            if (!thread) throw new TRPCError({code: 'INTERNAL_SERVER_ERROR'})
+
+            const posts = await ctx.prisma.post.findMany({
+                where: {
+                    threadId
+                },
+                skip: page * limit,
+                take: limit,
+                select: {
+                    id: true,
+                    content: true,
+                    createdAt: true,
+                    user: {
+                        select: {
+                            image: true,
+                            id: true,
+                            name: true,
+                            role: true,
+                            // createdAt: true,
+                            _count: {
+                                select: {
+                                    posts: true,
+                                    threads: true
+                                }
+                            }
+                        }
+                    }
+                }
+            })
+
+            if (!posts) throw new TRPCError({code: 'INTERNAL_SERVER_ERROR'})
+
+            return {
+                thread,
+                totalPages,
+                posts
+            }
+        }),
     count: publicProcedure
         .query(({ctx}) => {
 

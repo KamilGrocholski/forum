@@ -51,6 +51,7 @@ const SubCategoryPage: NextPage = () => {
         data={threadsPagination.data}
         isLoading={threadsPagination.isLoading}
         isError={threadsPagination.isError}
+        isEmpty={threadsPagination.data?.threads.length === 0}
         NonEmpty={(threads) => (
           <>
             <Pagination
