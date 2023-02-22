@@ -18,7 +18,8 @@ export const threadSchemes = {
     getPosts: z.object({
         threadId: threadBase.id,
         limit: z.number().default(10),
-        page: z.number().default(1)
+        page: z.number().default(1),
+        postLikesTake: z.number()
     }),
     getById: z.object({
         id: threadBase.id

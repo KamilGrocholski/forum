@@ -4,6 +4,7 @@ export type PostSchemes = {
     create: z.input<typeof postSchemes.create>
     delete: z.input<typeof postSchemes.delete>
     update: z.input<typeof postSchemes.update>
+    report: z.input<typeof postSchemes.report>
 }
 
 export const postBase = {
@@ -13,6 +14,13 @@ export const postBase = {
 }
 
 export const postSchemes = {
+    report: z.object({
+        postId: postBase.id,
+        reason: z.string().max(255)
+    }),
+    like: z.object({
+        postId: postBase.id
+    }),
     create: z.object({
         threadId: z.string().cuid(),
         content: postBase.content,

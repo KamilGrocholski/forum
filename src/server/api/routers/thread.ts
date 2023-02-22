@@ -1,5 +1,4 @@
 import { TRPCError } from "@trpc/server";
-import { z } from "zod";
 import { threadSchemes } from "../schemes/thread";
 import { createTRPCRouter, publicProcedure, protectedProcedure, imperatorProcedure } from "../trpc";
 
@@ -7,7 +6,7 @@ export const threadRouter = createTRPCRouter({
     postsPagination: publicProcedure
         .input(threadSchemes.getPosts)
         .query(async ({ctx, input}) => {
-            const { limit, threadId, page } = input
+            const { limit, threadId, page, postLikesTake } = input
 
             const postsCount = await ctx.prisma.post.count({
                 where: {
@@ -48,11 +47,28 @@ export const threadRouter = createTRPCRouter({
                             id: true,
                             name: true,
                             role: true,
-                            // createdAt: true,
+                            createdAt: true,
                             _count: {
                                 select: {
                                     posts: true,
                                     threads: true
+                                }
+                            },
+                        },
+                    },
+                    _count: {
+                        select: {
+                            postLikes: true
+                        }
+                    },
+                    postLikes: {
+                        take: postLikesTake, 
+                        select: {
+                            user: {
+                                select: {
+                                    id: true,
+                                    name: true,
+                                    role: true
                                 }
                             }
                         }
@@ -102,6 +118,22 @@ export const threadRouter = createTRPCRouter({
                                         select: {
                                             posts: true,
                                             threads: true
+                                        }
+                                    }
+                                }
+                            },
+                            _count: {
+                                select: {
+                                    postLikes: true
+                                }
+                            },
+                            postLikes: {
+                                take: 3,
+                                select: {
+                                    user: {
+                                        select: {
+                                            id: true,
+                                            name: true
                                         }
                                     }
                                 }

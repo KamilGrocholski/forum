@@ -24,7 +24,15 @@ import { FaQuoteRight, FaReply, FaHashtag } from 'react-icons/fa'
 import { HiShare } from 'react-icons/hi'
 import Pagination from "../../components/common/Pagination"
 import useScrollTo from "../../hooks/useScrollTo"
+import { Modal } from "../../components/common/Modal"
+import { type SubmitErrorHandler, type SubmitHandler, useForm } from 'react-hook-form'
+import TextInput from "../../components/common/TextInput"
+import { postSchemes, type PostSchemes } from "../../server/api/schemes/post"
+import type { Post as PostPrisma } from "@prisma/client"
+import { zodResolver } from "@hookform/resolvers/zod"
 
+const limit = 10 as const
+const postLikesTake = 3 as const
 const calcPostNumber = (currentPage: number, limit: number, index: number) => {
     return index + 1 + currentPage * limit
 }
@@ -33,7 +41,6 @@ const ThreadPage: NextPage = () => {
     const router = useRouter()
     const threadId = router.query.threadId as string
     const pageFromQuery = router.query.page as string
-    const limit = 10
     const parsedPage = pageFromQuery ? parseInt(pageFromQuery) : 0
     const paths = usePaths()
 
@@ -47,7 +54,8 @@ const ThreadPage: NextPage = () => {
         {
             limit,
             page,
-            threadId
+            threadId,
+            postLikesTake
         },
         {
             keepPreviousData: true
@@ -100,8 +108,11 @@ const ThreadPage: NextPage = () => {
                                             content: post.content?.toString() ?? '',
                                             createdAt: post.createdAt,
                                             user: post.user,
-                                            id: post.id
+                                            id: post.id,
+                                            _count: post._count,
+                                            postLikes: post.postLikes
                                         }}
+                                        currentPage={page}
                                         postNumber={calcPostNumber(page, limit, index)}
                                         goToPageWithPostNumberFn={() => paths.threadPageWithPostIndex(page, limit, threadId, calcPostNumber(page, limit, index))}
                                     />
@@ -147,15 +158,33 @@ const ThreadPage: NextPage = () => {
 export default ThreadPage
 
 const Post: React.FC<{
-    post: NonNullable<RouterOutputs['thread']['postsPagination']>['posts'][number],
+    post: NonNullable<RouterOutputs['thread']['postsPagination']>['posts'][number]
     postNumber: number
+    currentPage: number
     goToPageWithPostNumberFn: () => string
-}> = ({ post, postNumber, goToPageWithPostNumberFn }) => {
+}> = ({ post, postNumber, goToPageWithPostNumberFn, currentPage }) => {
     const [mode, setMode] = useState<'view' | 'edit'>('view')
+
+    const utils = api.useContext()
+
+    const likePostMutation = api.post.like.useMutation({
+        onSuccess: () => {
+            alert('polubiono')
+            void utils.thread.postsPagination.invalidate({ page: currentPage, limit })
+        }
+    })
+
+    const handleLikePost = () => {
+        likePostMutation.mutate({
+            postId: post.id
+        })
+    }
 
     const [editorState, setEditorState] = useState<EditorState>(dartJsConversion.convertToRead(EditorState.createEmpty(), post.content?.toString() ?? ''))
 
     const paths = usePaths()
+
+    const [reportModalOpen, setReportModalOpen] = useState(false)
 
     return (
         <div
@@ -163,7 +192,7 @@ const Post: React.FC<{
             className='bg-zinc-900 p-3 rounded flex gap-5 h-full shadow-lg shadow-black scroll-m-28'
         >
             {/* Left side  */}
-            <div className='w-1/6'>
+            <div className='w-1/6 flex flex-col space-y-5'>
                 <div>
                     <LinkButton
                         className='flex items-center flex-col'
@@ -179,7 +208,8 @@ const Post: React.FC<{
                     </LinkButton>
                     <div className={clsx(USER_ROLE_THINGS[post.user.role].textColor, 'text-center')}>{post.user.role}</div>
                 </div>
-                <div>
+                <div className='text-sm'>
+                    <div className='flex gap-1 items-center'><MdForum /><span>{formatDateToDisplay(post.user.createdAt)}</span></div>
                     <div className='flex gap-1 items-center'><MdForum /><span>{post.user._count.threads}</span></div>
                     <div className='flex gap-1 items-center'><FaComment /><span>{post.user._count.posts}</span></div>
                 </div>
@@ -203,6 +233,7 @@ const Post: React.FC<{
                     </div>
                 </div>
 
+                {/* Post content, edit or view */}
                 {mode === 'view' ?
                     <CustomEditor
                         editorState={editorState}
@@ -221,20 +252,65 @@ const Post: React.FC<{
                     Edit
                 </button>
 
+                {/* Post likes */}
+                {post._count.postLikes ?
+                    <div className='bg-zinc-800 rounded w-full px-3 py-1 flex items-center text-sm'>
+                        {post.postLikes.map((postLike) => (
+                            <div key={postLike.user.id} className='flex items-center'>
+                                <LinkButton
+                                    href={paths.user(postLike.user.id)}
+                                    className={USER_ROLE_THINGS[postLike.user.role].textColor}
+                                >
+                                    {postLike.user.name}
+                                </LinkButton>
+                            </div>
+                        ))}
+                        <div>
+                            {post._count.postLikes > postLikesTake
+                                ? <span>and {post._count.postLikes - postLikesTake} other members liked this post</span>
+                                : <span>liked this post</span>}
+                        </div>
+                    </div>
+                    : null}
+
+                {/* Post buttons */}
                 <div className='flex justify-between items-end h-full'>
                     <div className='flex gap-3'>
-                        <Button className='hover:text-red-900' variant='secondary' size='sm' icon={<MdReport />}>
+                        <ReportModal openState={[reportModalOpen, setReportModalOpen]} postId={post.id} />
+                        <Button
+                            onClick={() => setReportModalOpen(true)}
+                            className='hover:text-red-900'
+                            variant='secondary'
+                            size='sm'
+                            icon={<MdReport />}
+                        >
                             Report
                         </Button>
                     </div>
                     <div className='flex gap-3'>
-                        <Button className='hover:text-red-900' variant='secondary' size='sm' icon={<AiFillLike />}>
+                        <Button
+                            onClick={handleLikePost}
+                            className='hover:text-red-900'
+                            variant='secondary'
+                            size='sm'
+                            icon={<AiFillLike />}
+                        >
                             Like
                         </Button>
-                        <Button className='hover:text-red-900' variant='secondary' size='sm' icon={<FaQuoteRight />}>
+                        <Button
+                            className='hover:text-red-900'
+                            variant='secondary'
+                            size='sm'
+                            icon={<FaQuoteRight />}
+                        >
                             Quote
                         </Button>
-                        <Button className='hover:text-red-900' variant='secondary' size='sm' icon={<FaReply />}>
+                        <Button
+                            className='hover:text-red-900'
+                            variant='secondary'
+                            size='sm'
+                            icon={<FaReply />}
+                        >
                             Reply
                         </Button>
                     </div>
@@ -243,3 +319,65 @@ const Post: React.FC<{
         </div>
     )
 }
+
+const ReportModal: React.FC<{
+    openState: [boolean, React.Dispatch<React.SetStateAction<boolean>>],
+    postId: PostPrisma['id']
+}> = ({
+    openState,
+    postId
+}) => {
+        const {
+            register,
+            handleSubmit,
+            formState: { errors }
+        } = useForm<PostSchemes['report']>({
+            defaultValues: {
+                postId
+            },
+            resolver: zodResolver(postSchemes.report)
+        })
+
+        const reportPostMutation = api.post.report.useMutation({
+            onSuccess: () => {
+                alert('reported')
+            },
+            onError: () => {
+                alert('report has not been sent')
+            }
+        })
+
+        const onValid: SubmitHandler<PostSchemes['report']> = (data, e) => {
+            e?.preventDefault()
+            openState[1](false)
+            reportPostMutation.mutate(data)
+        }
+
+        const onError: SubmitErrorHandler<PostSchemes['report']> = (data, e) => {
+            e?.preventDefault()
+        }
+
+        return (
+            <Modal openState={openState}>
+                <form
+                    className='bg-zinc-800 rounded p-3 flex flex-col space-y-3'
+                    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+                    onSubmit={handleSubmit(onValid, onError)}
+                >
+                    <Modal.Title className='text-lg font-semibold text-center'>Report this post</Modal.Title>
+                    <Modal.Description></Modal.Description>
+                    <TextInput
+                        label='Reason'
+                        id='post-report-reason'
+                        {...register('reason')}
+                        errorMessage={errors.root?.message}
+                    />
+                    <Button
+                        type='submit'
+                    >
+                        Send
+                    </Button>
+                </form>
+            </Modal>
+        )
+    }
