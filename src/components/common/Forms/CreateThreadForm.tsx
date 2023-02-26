@@ -12,6 +12,7 @@ import CustomEditor from '../CustomEditor'
 import { type ContentState, convertToRaw, EditorState, type RawDraftContentState, convertFromRaw } from 'draft-js'
 import { z } from 'zod'
 import dartJsConversion from '../../../utils/dartJsConversion'
+import Button from '../Button'
 
 const CreateThreadForm: React.FC = () => {
     const [subCategoryName, setSubCategoryName] = useState<string | null>(null)
@@ -48,7 +49,7 @@ const CreateThreadForm: React.FC = () => {
 
     const onValid: SubmitHandler<Omit<ThreadSchemes['create'], 'content'>> = (data, e) => {
         e?.preventDefault()
-        console.log(data)
+
         const content = dartJsConversion.convertToSaveInDatabase(editorState)
         createThread.mutate({
             ...data,
@@ -58,16 +59,12 @@ const CreateThreadForm: React.FC = () => {
 
     const onError: SubmitErrorHandler<Omit<ThreadSchemes['create'], 'content'>> = (data, e) => {
         e?.preventDefault()
-        console.log({
-            ...data,
-            editorState: dartJsConversion.convertToSaveInDatabase(editorState)
-        })
     }
 
     return (
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         <form onSubmit={handleSubmit(onValid, onError)} className='bg-zinc-700 p-3 rounded flex flex-col space-y-3'>
-            <button onClick={() => setOpen(true)}>Open</button>
+            <button type='button' onClick={() => setOpen(true)}>Open</button>
             <Modal openState={[open, setOpen]}>
                 <CategoryWithSubCategories
                     onSelect={(id, name) => {
@@ -94,7 +91,12 @@ const CreateThreadForm: React.FC = () => {
                 errorMessage={errors.subCategoryId?.message}
                 {...register('subCategoryId')}
             />
-            <button className='w-fit bg-red-900 px-3 py-1 rounded'>Create</button>
+            <Button
+                type='submit'
+                loading={createThread.isLoading || createThread.isSuccess}
+            >
+                Create
+            </Button>
         </form>
     )
 }

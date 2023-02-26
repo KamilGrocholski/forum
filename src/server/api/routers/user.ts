@@ -41,5 +41,22 @@ export const userRouter = createTRPCRouter({
                     }
                 }
             })
+        }),
+    changeRole: imperatorProcedure
+        .input((z.object({
+            userId: z.string().cuid(),
+            role: z.literal('user').or(z.literal('admin')).or(z.literal('imperator'))
+        })))
+        .mutation(({ctx, input}) => {
+            const {userId, role} = input
+
+            return ctx.prisma.user.update({
+                where: {
+                    id: userId
+                },
+                data: {
+                    role
+                }
+            })
         })
 });

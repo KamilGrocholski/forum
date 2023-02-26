@@ -9,8 +9,8 @@ import { SlArrowDown } from "react-icons/sl";
 import { BiCommentDetail } from "react-icons/bi";
 import usePaths from "../hooks/usePaths";
 import LinkButton from "../components/common/LinkButton";
-import CreateCategoryForm from "../components/common/Forms/CreateCategoryForm";
-import CreateSubCategoryForm from "../components/common/Forms/CreateSubCategoryForm";
+import { formatDateToDisplay } from "../utils/formatDateToDisplay";
+import { USER_ROLE_THINGS } from "../utils/userRoleThings";
 
 const Home: NextPage = () => {
 
@@ -40,8 +40,6 @@ const Home: NextPage = () => {
             )}
           />
           <ForumActionsInfo />
-          <CreateCategoryForm />
-          <CreateSubCategoryForm categoryId={"cle8qqaol0004unds1j32ii15"} />
         </div>
         <SidebarForumInfo />
       </div>
@@ -51,25 +49,11 @@ const Home: NextPage = () => {
 
 export default Home;
 
-const exampleData = {
-  replies: [
-    { title: '3115411hn21Ok', time: 'A moment ago', user: 'Username' },
-    { title: 'O4124121k', time: 'A moment ago', user: 'Username' },
-    { title: '1412Ok13131', time: 'A moment ago', user: 'Username' },
-  ],
-  threads: [
-    { title: 'Okqweqweqwewqw', time: 'A moment ago', user: 'Username' },
-    { title: 'Okqeqdfqfqwqe', time: 'A moment ago', user: 'Username' },
-    { title: 'Okqwr21341231', time: 'A moment ago', user: 'Username' },
-  ],
-  updates: [
-    { title: 'Ok31412g1', time: 'A moment ago', replies: 412341 },
-    { title: 'Ok1112', time: 'A moment ago', replies: 1231241 },
-    { title: 'Okeqwe', time: 'A moment ago', replies: 9941 },
-  ]
-}
-
 const ForumActionsInfo: React.FC = () => {
+  const getLatestPosts = api.post.getLatest.useQuery()
+  const getLatestThreads = api.thread.getLatest.useQuery()
+
+  const paths = usePaths()
 
   return (
     <Tab.Group>
@@ -79,35 +63,59 @@ const ForumActionsInfo: React.FC = () => {
         <Tab as={Fragment}>{({ selected }) => <button className={`p-2 rounded-t-sm hover:text-white ${selected ? 'bg-zinc-900 text-red-900' : ''}`}>Latest updates</button>}</Tab>
       </Tab.List>
       <Tab.Panels>
-        <Tab.Panel className='flex flex-col bg-zinc-900'>
-          {exampleData.replies.map((reply) =>
-            <ForumActionsInfoRow
-              key={reply.time + reply.title + reply.user}
-              first={reply.title}
-              second={reply.time}
-              third={reply.user}
-            />
-          )}
+        <Tab.Panel className='flex flex-col bg-zinc-800'>
+          <StateWrapper
+            data={getLatestPosts.data}
+            isLoading={getLatestPosts.isLoading}
+            isError={getLatestPosts.isError}
+            NonEmpty={posts => <>
+              {posts.map((post) => (
+                <ForumActionsInfoRow
+                  key={post.id}
+                  first={<LinkButton href={paths.thread(post.thread.id)}>{post.thread.title}</LinkButton>}
+                  second={formatDateToDisplay(post.createdAt)}
+                  third={<LinkButton href={paths.user(post.user.id)} className={USER_ROLE_THINGS[post.user.role].textColor}>{post.user.name}</LinkButton>}
+                />
+              ))}
+            </>
+            }
+          />
         </Tab.Panel>
-        <Tab.Panel className='flex flex-col bg-zinc-900'>
-          {exampleData.threads.map((reply) => (
-            <ForumActionsInfoRow
-              key={reply.time + reply.title + reply.user}
-              first={reply.title}
-              second={reply.time}
-              third={reply.user}
-            />
-          ))}
+        <Tab.Panel className='flex flex-col bg-zinc-800'>
+          <StateWrapper
+            data={getLatestThreads.data}
+            isLoading={getLatestThreads.isLoading}
+            isError={getLatestThreads.isError}
+            NonEmpty={threads => <>
+              {threads.map((thread) => (
+                <ForumActionsInfoRow
+                  key={thread.id}
+                  first={<LinkButton href={paths.thread(thread.id)}>{thread.title}</LinkButton>}
+                  second={formatDateToDisplay(thread.createdAt)}
+                  third={<LinkButton href={paths.user(thread.user.id)} className={USER_ROLE_THINGS[thread.user.role].textColor}>{thread.user.name}</LinkButton>}
+                />
+              ))}
+            </>
+            }
+          />
         </Tab.Panel>
-        <Tab.Panel className='flex flex-col bg-zinc-900'>
-          {exampleData.updates.map((reply) => (
-            <ForumActionsInfoRow
-              key={reply.time + reply.title + reply.replies.toString()}
-              first={reply.title}
-              second={reply.time}
-              third={reply.replies}
-            />
-          ))}
+        <Tab.Panel className='flex flex-col bg-zinc-800'>
+          <StateWrapper
+            data={getLatestPosts.data}
+            isLoading={getLatestPosts.isLoading}
+            isError={getLatestPosts.isError}
+            NonEmpty={posts => <>
+              {posts.map((post) => (
+                <ForumActionsInfoRow
+                  key={post.id}
+                  first={post.thread.title}
+                  second={post.user.name}
+                  third={formatDateToDisplay(post.createdAt)}
+                />
+              ))}
+            </>
+            }
+          />
         </Tab.Panel>
       </Tab.Panels>
     </Tab.Group>
@@ -189,7 +197,8 @@ const CategoryDisclosure: React.FC<{
                       <div className='min-w-0'>
                         {!subCategory.threads[0]?.id
                           ? 'No threads'
-                          : <LinkButton
+                          :
+                          <LinkButton
                             href={paths.thread(subCategory.threads[0].id)}
                             className='hover:underline truncate block'
                           >

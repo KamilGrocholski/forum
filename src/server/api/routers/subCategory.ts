@@ -39,7 +39,8 @@ export const subCategoryRouter = createTRPCRouter({
                         select: {
                             name: true,
                             image: true,
-                            id: true
+                            id: true,
+                            role: true
                         }
                     },
                     posts: {
@@ -50,7 +51,8 @@ export const subCategoryRouter = createTRPCRouter({
                                 select: {
                                     name: true,
                                     id: true,
-                                    image: true
+                                    image: true,
+                                    role: true
                                 }
                             }
                         }

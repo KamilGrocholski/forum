@@ -1,7 +1,7 @@
 import { EditorState } from "draft-js"
 import { type NextPage } from "next"
 import { useRouter } from "next/router"
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import CustomEditor from "../../components/common/CustomEditor"
 import CreatePostForm from "../../components/common/Forms/CreatePostForm"
 import SessionStateWrapper from "../../components/common/SessionStateWrapper"
@@ -17,11 +17,66 @@ import usePaths from "../../hooks/usePaths"
 import LinkButton from "../../components/common/LinkButton"
 import clsx from "clsx"
 import UserAvatar from "../../components/common/UserAvatar"
+import Button from "../../components/common/Button"
+import { AiFillLike } from 'react-icons/ai'
+import { MdReport } from 'react-icons/md'
+import { FaQuoteRight, FaReply, FaHashtag } from 'react-icons/fa'
+import { HiShare } from 'react-icons/hi'
+import Pagination from "../../components/common/Pagination"
+import useScrollTo from "../../hooks/useScrollTo"
+import { Modal } from "../../components/common/Modal"
+import { type SubmitErrorHandler, type SubmitHandler, useForm } from 'react-hook-form'
+import TextInput from "../../components/common/TextInput"
+import { postSchemes, type PostSchemes } from "../../server/api/schemes/post"
+import type { Post as PostPrisma } from "@prisma/client"
+import { zodResolver } from "@hookform/resolvers/zod"
+
+const limit = 10 as const
+const postLikesTake = 3 as const
+const calcPostNumber = (currentPage: number, limit: number, index: number) => {
+    return index + currentPage * limit
+}
 
 const ThreadPage: NextPage = () => {
     const router = useRouter()
     const threadId = router.query.threadId as string
-    const threadQuery = api.thread.getById.useQuery({ id: threadId })
+    const pageFromQuery = router.query.page as string
+    const parsedPage = pageFromQuery ? parseInt(pageFromQuery) : 0
+    const paths = usePaths()
+
+    const scrollToTop = useScrollTo({ top: 0, behavior: 'smooth' })
+
+    const page = useMemo(() => {
+        return parsedPage
+    }, [parsedPage])
+
+    const threadQuery = api.thread.postsPagination.useQuery(
+        {
+            limit,
+            page,
+            threadId,
+            postLikesTake
+        },
+        {
+            keepPreviousData: true
+        }
+    )
+
+    const setPageQuery = (page: number) => {
+        void router.replace(
+            {
+                pathname: router.pathname,
+                query: {
+                    ...router.query,
+                    page
+                }
+            },
+            undefined,
+            {
+                shallow: true
+            }
+        )
+    }
 
     return (
         <MainLayout>
@@ -30,35 +85,70 @@ const ThreadPage: NextPage = () => {
                 isLoading={threadQuery.isLoading}
                 isError={threadQuery.isError}
                 NonEmpty={(thread) => (
-                    <div className='flex flex-col space-y-5'>
+                    <>
+                        <Pagination
+                            className='mb-5'
+                            currentPage={page}
+                            pages={thread.totalPages}
+                            goTo={(newPage) => setPageQuery(newPage)}
+                            goToNext={() => {
+                                setPageQuery(page + 1)
+                            }}
+                            goToPrev={() => {
+                                setPageQuery(page - 1)
+                            }}
+                            onPageChange={scrollToTop}
+                        />
                         <div className='flex flex-col space-y-5'>
-                            {thread.posts.map((post) => (
-                                <Post
-                                    key={post.id}
-                                    content={post.content?.toString() ?? ''}
-                                    createdAt={post.createdAt}
-                                    user={post.user}
-                                    id={post.id}
-                                />
-                            ))}
-                        </div>
-                        <div className='bg-zinc-900 flex gap-3 p-3 rounded'>
-                            <SessionStateWrapper
-                                Guest={(signIn) => <button onClick={() => void signIn('discord')}>Sign in to post</button>}
-                                User={(sessionData) => (
-                                    <>
-                                        <UserAvatar
-                                            src={sessionData.user.image}
-                                            width={50}
-                                            height={50}
-                                            alt=''
-                                        />
-                                        <CreatePostForm threadId={thread.id} />
-                                    </>
-                                )}
+                            <div className='flex flex-col space-y-5'>
+                                {thread.posts.map((post, index) => (
+                                    <Post
+                                        key={post.id}
+                                        post={{
+                                            content: post.content?.toString() ?? '',
+                                            createdAt: post.createdAt,
+                                            user: post.user,
+                                            id: post.id,
+                                            _count: post._count,
+                                            postLikes: post.postLikes
+                                        }}
+                                        currentPage={page}
+                                        postNumber={calcPostNumber(page, limit, index) + 1}
+                                        goToPageWithPostNumberFn={() => paths.threadPageWithPostIndex(page, limit, threadId, calcPostNumber(page, limit, index))}
+                                    />
+                                ))}
+                            </div>
+                            <Pagination
+                                className='mt-5'
+                                currentPage={page}
+                                pages={thread.totalPages}
+                                goTo={(newPage) => setPageQuery(newPage)}
+                                goToNext={() => {
+                                    setPageQuery(page + 1)
+                                }}
+                                goToPrev={() => {
+                                    setPageQuery(page - 1)
+                                }}
+                                onPageChange={scrollToTop}
                             />
+                            <div className='bg-zinc-900 flex gap-3 p-3 rounded'>
+                                <SessionStateWrapper
+                                    Guest={(signIn) => <button onClick={() => void signIn('discord')}>Sign in to post</button>}
+                                    User={(sessionData) => (
+                                        <>
+                                            <UserAvatar
+                                                src={sessionData.user.image}
+                                                width={50}
+                                                height={50}
+                                                alt=''
+                                            />
+                                            <CreatePostForm threadId={thread.thread.id} />
+                                        </>
+                                    )}
+                                />
+                            </div>
                         </div>
-                    </div>
+                    </>
                 )}
             />
         </MainLayout>
@@ -67,16 +157,42 @@ const ThreadPage: NextPage = () => {
 
 export default ThreadPage
 
-const Post: React.FC<NonNullable<RouterOutputs['thread']['getById']>['posts'][number]> = (post) => {
+const Post: React.FC<{
+    post: NonNullable<RouterOutputs['thread']['postsPagination']>['posts'][number]
+    postNumber: number
+    currentPage: number
+    goToPageWithPostNumberFn: () => string
+}> = ({ post, postNumber, goToPageWithPostNumberFn, currentPage }) => {
     const [mode, setMode] = useState<'view' | 'edit'>('view')
+
+    const utils = api.useContext()
+
+    const likePostMutation = api.post.like.useMutation({
+        onSuccess: () => {
+            alert('polubiono')
+            void utils.thread.postsPagination.invalidate({ page: currentPage, limit })
+        }
+    })
+
+    const handleLikePost = () => {
+        likePostMutation.mutate({
+            postId: post.id
+        })
+    }
 
     const [editorState, setEditorState] = useState<EditorState>(dartJsConversion.convertToRead(EditorState.createEmpty(), post.content?.toString() ?? ''))
 
     const paths = usePaths()
 
+    const [reportModalOpen, setReportModalOpen] = useState(false)
+
     return (
-        <div className='bg-zinc-900 p-3 rounded flex gap-5 h-full'>
-            <div className='w-1/6'>
+        <div
+            id={postNumber.toString()}
+            className='bg-zinc-900 p-3 rounded flex gap-5 h-full shadow-lg shadow-black scroll-m-28'
+        >
+            {/* Left side  */}
+            <div className='w-1/6 flex flex-col space-y-5'>
                 <div>
                     <LinkButton
                         className='flex items-center flex-col'
@@ -88,18 +204,36 @@ const Post: React.FC<NonNullable<RouterOutputs['thread']['getById']>['posts'][nu
                             alt=''
                             src={post.user.image}
                         />
-                        <div className='font-semibold text-lg'>{post.user.name}</div>
+                        <div className='font-semibold text-lg break-words text-center'>{post.user.name}</div>
                     </LinkButton>
                     <div className={clsx(USER_ROLE_THINGS[post.user.role].textColor, 'text-center')}>{post.user.role}</div>
                 </div>
-                <div>
+                <div className='text-sm'>
+                    <div className='flex gap-1 items-center'><MdForum /><span>{formatDateToDisplay(post.user.createdAt)}</span></div>
                     <div className='flex gap-1 items-center'><MdForum /><span>{post.user._count.threads}</span></div>
                     <div className='flex gap-1 items-center'><FaComment /><span>{post.user._count.posts}</span></div>
                 </div>
             </div>
+
+            {/* Veritical line  */}
             <div className='w-0.5 bg-zinc-800'></div>
-            <div className='flex flex-col space-y-3'>
-                <div className='font-semibold text-sm'>{formatDateToDisplay(post.createdAt)}</div>
+
+            {/* Right side */}
+            <div className='flex flex-col space-y-3 w-full'>
+                <div className='flex justify-between items-center text-sm'>
+                    <div className='font-semibold'>{formatDateToDisplay(post.createdAt)}</div>
+                    <div className='flex gap-2 items-center'>
+                        <div><HiShare /></div>
+                        <LinkButton
+                            href={goToPageWithPostNumberFn()}
+                            className='flex items-center gap-1'
+                        >
+                            <FaHashtag /><span>{postNumber}</span>
+                        </LinkButton>
+                    </div>
+                </div>
+
+                {/* Post content, edit or view */}
                 {mode === 'view' ?
                     <CustomEditor
                         editorState={editorState}
@@ -114,8 +248,136 @@ const Post: React.FC<NonNullable<RouterOutputs['thread']['getById']>['posts'][nu
                 <button
                     className='flex justify-start w-fit'
                     onClick={() => setMode(prev => prev === 'edit' ? 'view' : 'edit')}
-                >Edit</button>
+                >
+                    Edit
+                </button>
+
+                {/* Post likes */}
+                {post._count.postLikes ?
+                    <div className='bg-zinc-800 rounded w-full px-3 py-1 flex items-center text-sm'>
+                        {post.postLikes.map((postLike) => (
+                            <div key={postLike.user.id} className='flex items-center'>
+                                <LinkButton
+                                    href={paths.user(postLike.user.id)}
+                                    className={USER_ROLE_THINGS[postLike.user.role].textColor}
+                                >
+                                    {postLike.user.name}
+                                </LinkButton>
+                            </div>
+                        ))}
+                        <div>
+                            {post._count.postLikes > postLikesTake
+                                ? <span>and {post._count.postLikes - postLikesTake} other members liked this post</span>
+                                : <span>liked this post</span>}
+                        </div>
+                    </div>
+                    : null}
+
+                {/* Post buttons */}
+                <div className='flex justify-between items-end h-full'>
+                    <div className='flex gap-3'>
+                        <ReportModal openState={[reportModalOpen, setReportModalOpen]} postId={post.id} />
+                        <Button
+                            onClick={() => setReportModalOpen(true)}
+                            className='hover:text-red-900'
+                            variant='secondary'
+                            size='sm'
+                            icon={<MdReport />}
+                        >
+                            Report
+                        </Button>
+                    </div>
+                    <div className='flex lg:flex-row flex-col gap-3'>
+                        <Button
+                            onClick={handleLikePost}
+                            className='hover:text-red-900'
+                            variant='secondary'
+                            size='sm'
+                            icon={<AiFillLike />}
+                        >
+                            Like
+                        </Button>
+                        <Button
+                            className='hover:text-red-900'
+                            variant='secondary'
+                            size='sm'
+                            icon={<FaQuoteRight />}
+                        >
+                            Quote
+                        </Button>
+                        <Button
+                            className='hover:text-red-900'
+                            variant='secondary'
+                            size='sm'
+                            icon={<FaReply />}
+                        >
+                            Reply
+                        </Button>
+                    </div>
+                </div>
             </div>
         </div>
     )
 }
+
+const ReportModal: React.FC<{
+    openState: [boolean, React.Dispatch<React.SetStateAction<boolean>>],
+    postId: PostPrisma['id']
+}> = ({
+    openState,
+    postId
+}) => {
+        const {
+            register,
+            handleSubmit,
+            formState: { errors }
+        } = useForm<PostSchemes['report']>({
+            defaultValues: {
+                postId
+            },
+            resolver: zodResolver(postSchemes.report)
+        })
+
+        const reportPostMutation = api.post.report.useMutation({
+            onSuccess: () => {
+                alert('reported')
+            },
+            onError: () => {
+                alert('report has not been sent')
+            }
+        })
+
+        const onValid: SubmitHandler<PostSchemes['report']> = (data, e) => {
+            e?.preventDefault()
+            openState[1](false)
+            reportPostMutation.mutate(data)
+        }
+
+        const onError: SubmitErrorHandler<PostSchemes['report']> = (data, e) => {
+            e?.preventDefault()
+        }
+
+        return (
+            <Modal openState={openState}>
+                <form
+                    className='bg-zinc-800 rounded p-3 flex flex-col space-y-3'
+                    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+                    onSubmit={handleSubmit(onValid, onError)}
+                >
+                    <Modal.Title className='text-lg font-semibold text-center'>Report this post</Modal.Title>
+                    <Modal.Description></Modal.Description>
+                    <TextInput
+                        label='Reason'
+                        id='post-report-reason'
+                        {...register('reason')}
+                        errorMessage={errors.root?.message}
+                    />
+                    <Button
+                        type='submit'
+                    >
+                        Send
+                    </Button>
+                </form>
+            </Modal>
+        )
+    }

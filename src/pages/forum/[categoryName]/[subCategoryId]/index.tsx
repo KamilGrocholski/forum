@@ -5,17 +5,22 @@ import MainLayout from "../../../../components/layout/MainLayout"
 import { api } from "../../../../utils/api"
 import usePaths from "../../../../hooks/usePaths"
 import LinkButton from "../../../../components/common/LinkButton"
-import { useState } from "react"
+import { useMemo } from "react"
 import Pagination from "../../../../components/common/Pagination"
 import UserAvatar from "../../../../components/common/UserAvatar"
+import { USER_ROLE_THINGS } from "../../../../utils/userRoleThings"
 
 const SubCategoryPage: NextPage = () => {
   const router = useRouter()
   const subCategoryId = router.query.subCategoryId as string
   const pageFromQuery = router.query.page as string
+  const parsedPage = pageFromQuery ? parseInt(pageFromQuery) : 0
   const paths = usePaths()
 
-  const [page, setPage] = useState(0)
+  // const [page, setPage] = useState(() => parsedPage ?? 0)
+  const page = useMemo(() => {
+    return parsedPage
+  }, [parsedPage])
 
   const threadsPagination = api.subCategory.threadsPagination.useQuery({
     subCategoryId,
@@ -25,6 +30,21 @@ const SubCategoryPage: NextPage = () => {
     keepPreviousData: true
   })
 
+  const setPageQuery = (page: number) => {
+    void router.replace(
+      {
+        pathname: router.pathname,
+        query: {
+          ...router.query,
+          page
+        }
+      },
+      undefined,
+      {
+        shallow: true
+      }
+    )
+  }
 
   return (
     <MainLayout>
@@ -32,18 +52,20 @@ const SubCategoryPage: NextPage = () => {
         data={threadsPagination.data}
         isLoading={threadsPagination.isLoading}
         isError={threadsPagination.isError}
+        isEmpty={threadsPagination.data?.threads.length === 0}
+        Empty={<div>This subcategory has no threads.</div>}
         NonEmpty={(threads) => (
           <>
             <Pagination
               className='mb-5'
               currentPage={page}
               pages={threads.totalPages}
-              goTo={(page) => setPage(page)}
+              goTo={(newPage) => setPageQuery(newPage)}
               goToNext={() => {
-                setPage(prev => prev + 1)
+                setPageQuery(page + 1)
               }}
               goToPrev={() => {
-                setPage(prev => prev - 1)
+                setPageQuery(page - 1)
               }}
             />
             <div className='flex flex-col p-3 bg-zinc-900 rounded'>
@@ -59,7 +81,9 @@ const SubCategoryPage: NextPage = () => {
                       src={thread.user.image}
                       className='group-hover:outline outline-red-900 group-hover:scale-105 transition-transform duration-300 ease-in-out'
                     />
-                    <div className='absolute top-0 left-24 group-hover:block hidden bg-zinc-800 px-3 py-1 rounded'>{thread.user.name}</div>
+                    <div
+                      className={`${USER_ROLE_THINGS[thread.user.role].textColor} absolute top-0 left-24 group-hover:block hidden bg-zinc-800 px-3 py-1 rounded`}>
+                      {thread.user.name}</div>
                   </LinkButton>
 
                   {/* Thread link  */}
@@ -89,7 +113,7 @@ const SubCategoryPage: NextPage = () => {
                           alt=''
                           src={thread.posts[0].user.image}
                         />
-                        <span className='truncate block'>
+                        <span className={`${USER_ROLE_THINGS[thread.posts[0].user.role].textColor} truncate block`}>
                           {thread.posts[0].user.name}
                         </span>
                       </LinkButton>
@@ -103,12 +127,12 @@ const SubCategoryPage: NextPage = () => {
               className='mt-5'
               currentPage={page}
               pages={threads.totalPages}
-              goTo={(page) => setPage(page)}
+              goTo={(newPage) => setPageQuery(newPage)}
               goToNext={() => {
-                setPage(prev => prev + 1)
+                setPageQuery(page + 1)
               }}
               goToPrev={() => {
-                setPage(prev => prev - 1)
+                setPageQuery(page - 1)
               }}
             />
           </>

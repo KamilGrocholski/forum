@@ -1,7 +1,41 @@
+import { TRPCError } from "@trpc/server";
 import { postSchemes } from "../schemes/post";
 import { createTRPCRouter, publicProcedure, protectedProcedure, imperatorProcedure } from "../trpc";
 
 export const postRouter = createTRPCRouter({
+    report: protectedProcedure
+        .input(postSchemes.report)
+        .mutation(({ctx, input}) => {
+            const {postId, reason} = input
+
+            return ctx.prisma.reportPost.create({
+                data: {
+                    postId,
+                    reason
+                }
+            })
+        }),
+    like: protectedProcedure
+        .input(postSchemes.like)
+        .mutation(async ({ctx, input}) => {
+            const { postId } = input
+
+            const foundLike = await ctx.prisma.postLike.findFirst({
+                where: {
+                    userId: ctx.session.user.id,
+                    postId
+                }
+            })
+
+            if (foundLike) throw new TRPCError({code: 'FORBIDDEN'})
+
+            return ctx.prisma.postLike.create({
+                data: {
+                    userId: ctx.session.user.id,
+                    postId
+                }
+            })
+        }),
     count: publicProcedure
         .query(({ctx}) => {
 
@@ -11,14 +45,15 @@ export const postRouter = createTRPCRouter({
         .query(({ctx}) => {
 
             return ctx.prisma.post.findMany({
-                take: 10,
+                take: 20,
                 select: {
                     id: true,
                     user: {
                         select: {
                             id: true,
                             name: true,
-                            image: true
+                            image: true,
+                            role: true
                         }
                     },
                     createdAt: true,

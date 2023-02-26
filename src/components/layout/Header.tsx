@@ -1,22 +1,21 @@
-import { signOut } from "next-auth/react"
-import Image from "next/image"
 import Link from "next/link"
-import { useRouter } from "next/router"
 import { Fragment, useState } from "react"
 import { appStore } from "../../store/appStore"
-import { Modal } from "../common/Modal"
 import SessionStateWrapper from "../common/SessionStateWrapper"
 import { AiOutlineColumnWidth } from 'react-icons/ai'
 import { BiBell } from "react-icons/bi"
 import { FiMail, FiSearch } from "react-icons/fi"
 import { Menu, Transition } from "@headlessui/react"
-import ImageWithFallback from "../common/ImageWithFallback"
 import type { Role } from "@prisma/client"
+import usePaths from "../../hooks/usePaths"
+import UserAvatar from "../common/UserAvatar"
+import { USER_ROLE_THINGS } from "../../utils/userRoleThings"
+import { Modal } from "../common/Modal"
+import LiveSearch from "../common/LiveSearch"
+import LinkButton from "../common/LinkButton"
 
 const Header = () => {
-    const router = useRouter()
-    const title = router.query.title as string
-    const id = router.query.id as string
+    const paths = usePaths()
 
     const layoutWidth = appStore(state => state.layoutWidth)
     const setLayoutWidth = appStore(state => state.setLayoutWidth)
@@ -29,26 +28,60 @@ const Header = () => {
         )
     }
 
+    const commonLinks = [
+        { href: paths.postThread(), label: 'Post thread' }
+    ]
+
+    const links: { [key in Role]: { href: string, label: string }[] } = {
+        user: [...commonLinks],
+        admin: [...commonLinks],
+        imperator: [
+            ...commonLinks,
+            { href: '/imperator-dashboard', label: 'Imperator dashboard' }
+        ],
+    }
+
+    const liveSearchOpenState = useState(false)
+
     return (
         <header className='flex items-center justify-between h-24 border-b border-zinc-800 w-full sticky top-0 z-20 bg-zinc-900'>
+            <Modal openState={liveSearchOpenState}>
+                <LiveSearch<{ tag: string }>
+                    onSearch={(query) => console.log(query)}
+                    extractQuery={(suggestion) => suggestion.tag}
+                    fetchSuggestions={(query) => [{ tag: 'OK' }, { tag: 'Wut' }].filter(item => item.tag.startsWith(query))}
+                    renderSuggestion={(suggestion) => <div>{suggestion.tag}</div>}
+                    extractSuggestionKey={(suggestion) => suggestion.tag}
+                />
+            </Modal>
             <div className={`flex flex-col h-full px-3 mx-auto ${layoutWidth === 'container' ? 'container' : 'w-full'}`}>
                 <div className='flex items-end justify-between w-full h-full'>
-                    <Link href='/'><span className='text-lg font-bold'>Logo</span></Link>
+                    <Link href={paths.home()}><span className='text-lg font-bold'>Logo</span></Link>
                     <nav className='grow ml-12 flex gap-3'>
-                        <Link href='/forums'>Forums</Link>
-                        <Link href='/whats-new'>{"What's new"}</Link>
-                        <Link href='/tickets'>Tickets</Link>
-                        <Link href='/post-thread'>Post thread</Link>
+                        <SessionStateWrapper
+                            Guest={() => (
+                                <>
+                                    {commonLinks.map((link) => (
+                                        <Link key={link.label} href={link.href}>{link.label}</Link>
+                                    ))}
+                                </>
+                            )}
+                            User={({ user: { role } }) => (
+                                <>
+                                    {links[role].map((link) => <Link key={link.label} href={link.href}>{link.label}</Link>)}
+                                </>
+                            )}
+                        />
                     </nav>
                     <div>
                         <SessionStateWrapper
                             Guest={(signIn) => <button onClick={() => void signIn('discord')}>Sign in</button>}
                             User={(sessionData, signOut) => (
                                 <div className='flex gap-3 text-lg items-center text-zinc-400 h-fit'>
-                                    <UserAccountMenu image={sessionData.user.image ?? ''} name={sessionData.user.name ?? ''} role={sessionData.user.role} signOut={signOut} />
+                                    <UserAccountMenu image={sessionData.user.image ?? ''} id={sessionData.user.id} name={sessionData.user.name ?? ''} role={sessionData.user.role} signOut={signOut} />
                                     <button onClick={toggleLayoutWidth}><FiMail /></button>
                                     <button onClick={toggleLayoutWidth}><BiBell /></button>
-                                    <button onClick={toggleLayoutWidth}><FiSearch /></button>
+                                    <button onClick={() => liveSearchOpenState[1](true)}><FiSearch /></button>
                                     <button onClick={toggleLayoutWidth}><AiOutlineColumnWidth /></button>
                                 </div>
                             )}
@@ -70,27 +103,29 @@ const Header = () => {
 export default Header
 
 const UserAccountMenu: React.FC<{
+    id: string,
     image: string
     name: string
     role: Role
     signOut: () => Promise<void>
 }> = ({
+    id,
     image,
     name,
     role,
     signOut
 }) => {
+        const paths = usePaths()
+
         return (
             <Menu as="div" className="relative inline-block text-left">
                 <div>
                     <Menu.Button className="inline-flex h-fit w-fit justify-center rounded-md text-sm font-medium text-white">
-                        <ImageWithFallback
+                        <UserAvatar
                             src={image}
                             alt=''
-                            fallbackSrc={''}
                             height={30}
                             width={30}
-                            className='rounded-full'
                         />
                     </Menu.Button>
                 </div>
@@ -108,20 +143,23 @@ const UserAccountMenu: React.FC<{
                             <Menu.Item>
                                 <div className='flex gap-3'>
                                     <div className='w-fit h-fit items-start'>
-                                        <ImageWithFallback
+                                        <UserAvatar
                                             src={image}
                                             alt=''
-                                            fallbackSrc={''}
                                             height={40}
                                             width={40}
-                                            className='rounded-full'
                                         />
                                     </div>
                                     <div>
                                         <div className='text-white'>{name}</div>
-                                        <div>{role}</div>
+                                        <div className={USER_ROLE_THINGS[role].textColor}>{role}</div>
                                     </div>
                                 </div>
+                            </Menu.Item>
+                        </div>
+                        <div className='px-1 py-1'>
+                            <Menu.Item>
+                                <LinkButton href={paths.user(id)}>My profile</LinkButton>
                             </Menu.Item>
                         </div>
                         <div className="px-1 py-1">
