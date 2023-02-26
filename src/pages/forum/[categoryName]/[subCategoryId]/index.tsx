@@ -8,6 +8,7 @@ import LinkButton from "../../../../components/common/LinkButton"
 import { useMemo } from "react"
 import Pagination from "../../../../components/common/Pagination"
 import UserAvatar from "../../../../components/common/UserAvatar"
+import { USER_ROLE_THINGS } from "../../../../utils/userRoleThings"
 
 const SubCategoryPage: NextPage = () => {
   const router = useRouter()
@@ -52,6 +53,7 @@ const SubCategoryPage: NextPage = () => {
         isLoading={threadsPagination.isLoading}
         isError={threadsPagination.isError}
         isEmpty={threadsPagination.data?.threads.length === 0}
+        Empty={<div>This subcategory has no threads.</div>}
         NonEmpty={(threads) => (
           <>
             <Pagination
@@ -79,7 +81,9 @@ const SubCategoryPage: NextPage = () => {
                       src={thread.user.image}
                       className='group-hover:outline outline-red-900 group-hover:scale-105 transition-transform duration-300 ease-in-out'
                     />
-                    <div className='absolute top-0 left-24 group-hover:block hidden bg-zinc-800 px-3 py-1 rounded'>{thread.user.name}</div>
+                    <div
+                      className={`${USER_ROLE_THINGS[thread.user.role].textColor} absolute top-0 left-24 group-hover:block hidden bg-zinc-800 px-3 py-1 rounded`}>
+                      {thread.user.name}</div>
                   </LinkButton>
 
                   {/* Thread link  */}
@@ -109,7 +113,7 @@ const SubCategoryPage: NextPage = () => {
                           alt=''
                           src={thread.posts[0].user.image}
                         />
-                        <span className='truncate block'>
+                        <span className={`${USER_ROLE_THINGS[thread.posts[0].user.role].textColor} truncate block`}>
                           {thread.posts[0].user.name}
                         </span>
                       </LinkButton>

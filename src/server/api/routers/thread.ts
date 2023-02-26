@@ -163,7 +163,8 @@ export const threadRouter = createTRPCRouter({
                         select: {
                             id: true,
                             image: true,
-                            name: true
+                            name: true,
+                            role: true
                         }
                     }
                 }

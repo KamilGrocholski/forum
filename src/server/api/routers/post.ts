@@ -45,14 +45,15 @@ export const postRouter = createTRPCRouter({
         .query(({ctx}) => {
 
             return ctx.prisma.post.findMany({
-                take: 10,
+                take: 20,
                 select: {
                     id: true,
                     user: {
                         select: {
                             id: true,
                             name: true,
-                            image: true
+                            image: true,
+                            role: true
                         }
                     },
                     createdAt: true,

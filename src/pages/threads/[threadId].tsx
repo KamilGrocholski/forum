@@ -34,7 +34,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 const limit = 10 as const
 const postLikesTake = 3 as const
 const calcPostNumber = (currentPage: number, limit: number, index: number) => {
-    return index + 1 + currentPage * limit
+    return index + currentPage * limit
 }
 
 const ThreadPage: NextPage = () => {
@@ -113,7 +113,7 @@ const ThreadPage: NextPage = () => {
                                             postLikes: post.postLikes
                                         }}
                                         currentPage={page}
-                                        postNumber={calcPostNumber(page, limit, index)}
+                                        postNumber={calcPostNumber(page, limit, index) + 1}
                                         goToPageWithPostNumberFn={() => paths.threadPageWithPostIndex(page, limit, threadId, calcPostNumber(page, limit, index))}
                                     />
                                 ))}
@@ -287,7 +287,7 @@ const Post: React.FC<{
                             Report
                         </Button>
                     </div>
-                    <div className='flex gap-3'>
+                    <div className='flex lg:flex-row flex-col gap-3'>
                         <Button
                             onClick={handleLikePost}
                             className='hover:text-red-900'

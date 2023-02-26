@@ -9,7 +9,6 @@ import { api } from "../../utils/api"
 import StateWrapper from "../common/StateWrapper"
 import SmallLoader from "../common/SmallLoader"
 import { USER_ROLE_THINGS } from "../../utils/userRoleThings"
-import ImageWithFallback from "../common/ImageWithFallback"
 import UserAvatar from "../common/UserAvatar"
 
 const Footer: React.FC = () => {
@@ -23,7 +22,7 @@ const Footer: React.FC = () => {
     return (
         <footer className='border-t-4 border-red-900 bg-zinc-900 pt-3'>
             <div className={`flex flex-col space-y-3 px-3 ${layoutWidth === 'container' ? 'container mx-auto' : 'w-full'}`}>
-                <div className='grid grid-cols-4 gap-3'>
+                <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3'>
                     <div>
                         <h2 className='text-red-900 text-lg font-semibold flex items-center gap-2'>
                             <FcAbout />
@@ -109,7 +108,7 @@ const Footer: React.FC = () => {
                 </div>
                 <div>STRONA</div>
             </div>
-            <div className='bg-zinc-600 mt-3 h-10'>Copy right</div>
+            <div className='bg-zinc-800 mt-3 h-8  px-3 text-center'>Copy right</div>
         </footer>
     )
 }

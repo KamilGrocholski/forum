@@ -1,4 +1,6 @@
-interface StateWrapperProps<T> {
+import { BiLoaderAlt } from 'react-icons/bi'
+
+export interface StateWrapperProps<T> {
     data: T
     isLoading: boolean
     isError: boolean
@@ -35,5 +37,5 @@ const StateWrapper = <T,>({
 export default StateWrapper
 
 const DefaultEmpty = <div>Empty</div>
-const DefaultLoading = <div>Loading</div>
+const DefaultLoading = <div className='w-min mx-auto'><BiLoaderAlt className='text-8xl animate-spin text-red-900' /></div>
 const DefaultError = <div>Error</div>

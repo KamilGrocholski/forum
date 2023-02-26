@@ -13,7 +13,7 @@ const SidebarForumInfo: React.FC = () => {
     // const latestPosts = api.post.getLatest.useQuery()
 
     return (
-        <div className='w-[300px]'>
+        <div className='w-[300px] lg:block hidden'>
             <h1 className='flex gap-3 items-center px-3 text-lg font-semibold'>
                 <FaComment />
                 <span>Latest posts</span>
