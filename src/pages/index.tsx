@@ -58,9 +58,9 @@ const ForumActionsInfo: React.FC = () => {
   return (
     <Tab.Group>
       <Tab.List>
-        <Tab as={Fragment}>{({ selected }) => <button className={`p-2 rounded-t-sm hover:text-white ${selected ? 'bg-zinc-900 text-red-900' : ''}`}>Latest replies</button>}</Tab>
-        <Tab as={Fragment}>{({ selected }) => <button className={`p-2 rounded-t-sm hover:text-white ${selected ? 'bg-zinc-900 text-red-900' : ''}`}>Latest Threads</button>}</Tab>
-        <Tab as={Fragment}>{({ selected }) => <button className={`p-2 rounded-t-sm hover:text-white ${selected ? 'bg-zinc-900 text-red-900' : ''}`}>Latest updates</button>}</Tab>
+        <Tab as={Fragment}>{({ selected }) => <button className={`p-2 rounded-t-sm hover:text-white ${selected ? 'bg-zinc-800 text-red-900' : 'bg-zinc-900'}`}>Latest replies</button>}</Tab>
+        <Tab as={Fragment}>{({ selected }) => <button className={`p-2 rounded-t-sm hover:text-white ${selected ? 'bg-zinc-800 text-red-900' : 'bg-zinc-900'}`}>Latest Threads</button>}</Tab>
+        <Tab as={Fragment}>{({ selected }) => <button className={`p-2 rounded-t-sm hover:text-white ${selected ? 'bg-zinc-800 text-red-900' : 'bg-zinc-900'}`}>Latest updates</button>}</Tab>
       </Tab.List>
       <Tab.Panels>
         <Tab.Panel className='flex flex-col bg-zinc-800'>

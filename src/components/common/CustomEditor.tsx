@@ -5,13 +5,16 @@ import createToolbarPlugin from '@draft-js-plugins/static-toolbar'
 import { BoldButton, ItalicButton, UnderlineButton, CodeButton, UnorderedListButton, OrderedListButton } from "@draft-js-plugins/buttons";
 import { type EditorProps } from "draft-js";
 import 'draft-js/dist/Draft.css';
+import clsx from "clsx";
 
 interface CustomEditorProps extends EditorProps {
     readOnly?: boolean
+    className?: string
 }
 
 const CustomEditor: React.FC<CustomEditorProps> = ({
     readOnly = false,
+    className,
     ...rest
 }) => {
 
@@ -29,7 +32,11 @@ const CustomEditor: React.FC<CustomEditorProps> = ({
 
     return (
         <div
-            className={`editor ${readOnly ? '' : 'readonly-editor'} min-h-[12rem] w-full`}
+            className={clsx(
+            readOnly && 'readonly-editor',
+              'min-h-[12rem] w-full',
+              className
+            )}
             onClick={() => editorRef.current && editorRef.current.focus()}
         >
             {readOnly

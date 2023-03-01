@@ -35,6 +35,12 @@ export const subCategoryRouter = createTRPCRouter({
                             views: true
                         }
                     },
+                    subCategory: {
+                      select: {
+                        id: true,
+                        name: true
+                      }
+                    },
                     user: {
                         select: {
                             name: true,

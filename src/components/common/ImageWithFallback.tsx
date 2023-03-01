@@ -21,6 +21,7 @@ const ImageWithFallback = forwardRef<HTMLImageElement, ImageWithFallbackProps>((
             alt={alt}
             ref={ref}
             onError={(error) => {
+                console.error(error)
                 setImgSrc(fallbackSrc)
             }}
             onLoadingComplete={(result) => {

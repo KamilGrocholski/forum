@@ -30,6 +30,7 @@ import TextInput from "../../components/common/TextInput"
 import { postSchemes, type PostSchemes } from "../../server/api/schemes/post"
 import type { Post as PostPrisma } from "@prisma/client"
 import { zodResolver } from "@hookform/resolvers/zod"
+import EditPostForm from "../../components/common/Forms/EditPostForm"
 
 const limit = 10 as const
 const postLikesTake = 3 as const
@@ -43,6 +44,8 @@ const ThreadPage: NextPage = () => {
     const pageFromQuery = router.query.page as string
     const parsedPage = pageFromQuery ? parseInt(pageFromQuery) : 0
     const paths = usePaths()
+
+    const utils = api.useContext()  
 
     const scrollToTop = useScrollTo({ top: 0, behavior: 'smooth' })
 
@@ -110,10 +113,11 @@ const ThreadPage: NextPage = () => {
                                             user: post.user,
                                             id: post.id,
                                             _count: post._count,
-                                            postLikes: post.postLikes
+                                            postLikes: post.postLikes,
+                                            thread: post.thread
                                         }}
                                         currentPage={page}
-                                        postNumber={calcPostNumber(page, limit, index) + 1}
+                                        postNumber={calcPostNumber(page, limit, index)}
                                         goToPageWithPostNumberFn={() => paths.threadPageWithPostIndex(page, limit, threadId, calcPostNumber(page, limit, index))}
                                     />
                                 ))}
@@ -241,16 +245,30 @@ const Post: React.FC<{
                         onChange={() => null}
                     /> : null}
                 {mode === 'edit' ?
-                    <CustomEditor
-                        editorState={editorState}
-                        onChange={setEditorState}
+                    <EditPostForm 
+                      onSuccess={() => {
+                        setMode('view')
+                        void utils.thread.postsPagination.invalidate({page: currentPage, threadId: post.thread.id})
+                      }}
+                      postId={post.id}
+                      editorState={editorState}
+                      setEditorState={setEditorState}
                     /> : null}
-                <button
-                    className='flex justify-start w-fit'
-                    onClick={() => setMode(prev => prev === 'edit' ? 'view' : 'edit')}
-                >
-                    Edit
-                </button>
+                <SessionStateWrapper 
+                  Guest={() => <></>}
+                  User={(sessionData) => (
+                    sessionData.user.id !== post.user.id
+                      ? <></>
+                      :<div> 
+                      <Button
+                        onClick={() => setMode(prev => prev === 'edit' ? 'view' : 'edit')}
+                        variant='primary'
+                      >
+                        {mode === 'edit' ? 'Stop editing' : 'Edit'}
+                      </Button> 
+                      </div>
+                  )}
+                />
 
                 {/* Post likes */}
                 {post._count.postLikes ?

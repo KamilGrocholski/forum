@@ -56,7 +56,7 @@ const Header = () => {
             </Modal>
             <div className={`flex flex-col h-full px-3 mx-auto ${layoutWidth === 'container' ? 'container' : 'w-full'}`}>
                 <div className='flex items-end justify-between w-full h-full'>
-                    <Link href={paths.home()}><span className='text-lg font-bold'>Logo</span></Link>
+                    <Link href={paths.home()}><span className='text-lg font-bold'>Forum</span></Link>
                     <nav className='grow ml-12 flex gap-3'>
                         <SessionStateWrapper
                             Guest={() => (

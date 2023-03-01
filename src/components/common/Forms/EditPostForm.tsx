@@ -1,55 +1,60 @@
 import { useForm, type SubmitHandler, type SubmitErrorHandler } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { api } from '../../../utils/api'
-import { useState } from 'react'
 import CustomEditor from '../CustomEditor'
-import { EditorState } from 'draft-js'
+import { type EditorState } from 'draft-js'
 import dartJsConversion from '../../../utils/dartJsConversion'
 import { type PostSchemes } from '../../../server/api/schemes/post'
-import type { Thread } from '@prisma/client'
+import type { Post } from '@prisma/client'
 import { z } from 'zod'
+import Button from '../Button'
 
-const CreatePostForm: React.FC<{
-    threadId: Thread['id']
+const EditPostForm: React.FC<{
+    postId: Post['id'],
+    editorState: EditorState,
+    setEditorState: React.Dispatch<EditorState>,
+    onSuccess: () => void
 }> = ({
-    threadId
+    postId,
+    editorState,
+    setEditorState,
+    onSuccess
 }) => {
-        const [editorState, setEditorState] = useState<EditorState>(() => EditorState.createEmpty())
-
         const {
             handleSubmit,
             formState: {errors}
-        } = useForm<Omit<PostSchemes['create'], 'content'>>({
+        } = useForm<Omit<PostSchemes['update'], 'content'>>({
             defaultValues: {
-                threadId
+                id: postId
             },
             resolver: zodResolver(z.object({
-                threadId: z.string().cuid()
+                id: z.string().cuid()
             }))
         })
 
         const utils = api.useContext()
 
-        const createPost = api.post.create.useMutation({
+        const updatePost = api.post.update.useMutation({
             onSuccess: () => {
-                void utils.thread.getById.invalidate({ id: threadId })
+              onSuccess()
+              alert('updated')
             },
             onError: () => {
                 alert('error')
             }
         })
 
-        const onValid: SubmitHandler<Omit<PostSchemes['create'], 'content'>> = (data, e) => {
+        const onValid: SubmitHandler<Omit<PostSchemes['update'], 'content'>> = (data, e) => {
             e?.preventDefault()
             console.log(data)
             const content = dartJsConversion.convertToSaveInDatabase(editorState)
-            createPost.mutate({
-                threadId: data.threadId,
+            updatePost.mutate({
+                id: data.id,
                 content
             })
         }
 
-        const onError: SubmitErrorHandler<Omit<PostSchemes['create'], 'content'>> = (data, e) => {
+        const onError: SubmitErrorHandler<Omit<PostSchemes['update'], 'content'>> = (data, e) => {
             e?.preventDefault()
             console.log({
                 ...data,
@@ -62,9 +67,14 @@ const CreatePostForm: React.FC<{
             <form onSubmit={handleSubmit(onValid, onError)} className='p-3 rounded flex flex-col space-y-12'>
                 <CustomEditor editorState={editorState} onChange={setEditorState} />
 
-                <button className='w-fit bg-red-900 px-3 py-1 rounded'>Create</button>
+                <Button
+                  type='submit'
+                  className='w-fit'
+                >
+                  Confirm changes
+                </Button>
             </form>
         )
     }
 
-export default CreatePostForm
+export default EditPostForm

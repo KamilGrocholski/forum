@@ -10,6 +10,7 @@ import StateWrapper from "../common/StateWrapper"
 import SmallLoader from "../common/SmallLoader"
 import { USER_ROLE_THINGS } from "../../utils/userRoleThings"
 import UserAvatar from "../common/UserAvatar"
+import SessionStateWrapper from "../common/SessionStateWrapper"
 
 const Footer: React.FC = () => {
     const layoutWidth = appStore(state => state.layoutWidth)
@@ -43,9 +44,26 @@ const Footer: React.FC = () => {
                     <div>
                         <h2 className='text-red-900 text-lg font-semibold flex items-center gap-2'>
                             <FaUserAlt />
-                            <span>User info</span>
+                            <span>User navigation</span>
                         </h2>
-                        <div>Lorem ipsum dolor, sit amet consectetur adipisicing elit. Eveniet, sapiente ipsum veritatis accusamus aspernatur, nemo perspiciatis facilis cum nisi repellat dolor quisquam in vero natus, aliquid asperiores. Officiis, architecto rerum!</div>
+                        <div>
+                            <SessionStateWrapper
+                                Guest={(signIn) => (
+                                  <div>
+                                    <button onClick={() => signIn('discord')}>Sign in</button>
+                                  </div>
+                                )}
+                                User={(sessionData) => (
+                                  <div className='flex flex-col'>
+                                    <LinkButton
+                                      href={paths.user(sessionData.user.id)}
+                                    >
+                                      Profile
+                                    </LinkButton>
+                                  </div>
+                                )}
+                            />
+                         </div>
                     </div>
                     <div>
                         <h2 className='text-red-900 text-lg font-semibold flex items-center gap-2'>
@@ -106,7 +124,6 @@ const Footer: React.FC = () => {
                         </div>
                     </div>
                 </div>
-                <div>STRONA</div>
             </div>
             <div className='bg-zinc-800 mt-3 h-8  px-3 text-center'>Copy right</div>
         </footer>
