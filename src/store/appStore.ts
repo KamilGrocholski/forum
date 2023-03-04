@@ -9,7 +9,7 @@ interface AppStoreState {
 
 export const appStore = create<AppStoreState>(set => ({
     layoutWidth: 'container',
-    setLayoutWidth: (width) => set(() => ({layoutWidth: width})),
+    setLayoutWidth: (width) => set(() => ({ layoutWidth: width })),
     postThreadModal: false,
-    setPostThreadModal: (bool) => set(() => ({postThreadModal: bool}))
+    setPostThreadModal: (bool) => set(() => ({ postThreadModal: bool }))
 }))

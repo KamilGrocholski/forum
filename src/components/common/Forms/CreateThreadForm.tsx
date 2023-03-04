@@ -1,7 +1,7 @@
-import { useForm, type SubmitHandler, type SubmitErrorHandler, Controller } from 'react-hook-form'
+import { useForm, type SubmitHandler, type SubmitErrorHandler } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import TextInput from '../TextInput'
-import { threadSchemes, type ThreadSchemes } from '../../../server/api/schemes/thread'
+import { type ThreadSchemes } from '../../../server/api/schemes/thread'
 import { api } from '../../../utils/api'
 import { useRouter } from 'next/router'
 import StateWrapper from '../StateWrapper'
@@ -9,7 +9,7 @@ import { Modal } from '../Modal'
 import { useState } from 'react'
 import usePaths from '../../../hooks/usePaths'
 import CustomEditor from '../CustomEditor'
-import { type ContentState, convertToRaw, EditorState, type RawDraftContentState, convertFromRaw } from 'draft-js'
+import { EditorState } from 'draft-js'
 import { z } from 'zod'
 import dartJsConversion from '../../../utils/dartJsConversion'
 import Button from '../Button'
@@ -20,7 +20,6 @@ const CreateThreadForm: React.FC = () => {
     const [editorState, setEditorState] = useState<EditorState>(() => EditorState.createEmpty())
 
     const {
-        control,
         register,
         setValue,
         handleSubmit,
@@ -33,7 +32,6 @@ const CreateThreadForm: React.FC = () => {
     })
 
     const paths = usePaths()
-    const utils = api.useContext()
     const router = useRouter()
     const [open, setOpen] = useState(false)
 
@@ -64,7 +62,11 @@ const CreateThreadForm: React.FC = () => {
     return (
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         <form onSubmit={handleSubmit(onValid, onError)} className='bg-zinc-700 p-3 rounded flex flex-col space-y-3'>
-            <button type='button' onClick={() => setOpen(true)}>Open</button>
+            <Button
+                onClick={() => setOpen(true)}
+            >
+                Select subcategory
+            </Button>
             <Modal openState={[open, setOpen]}>
                 <CategoryWithSubCategories
                     onSelect={(id, name) => {
@@ -83,7 +85,10 @@ const CreateThreadForm: React.FC = () => {
 
             <CustomEditor editorState={editorState} onChange={setEditorState} />
 
-            <div>{subCategoryName}</div>
+            <div className='flex gap-1'>
+                <span>Selected subcategory:</span>
+                <span className='font-bold'>{subCategoryName}</span>
+            </div>
             <TextInput
                 disabled={true}
                 className='hidden'

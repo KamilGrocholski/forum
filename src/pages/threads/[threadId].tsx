@@ -30,6 +30,9 @@ import TextInput from "../../components/common/TextInput"
 import { postSchemes, type PostSchemes } from "../../server/api/schemes/post"
 import type { Post as PostPrisma } from "@prisma/client"
 import { zodResolver } from "@hookform/resolvers/zod"
+import EditPostForm from "../../components/common/Forms/EditPostForm"
+import Breadcrumbs from "../../components/common/Breadcrumbs"
+import RateThreadForm from "../../components/common/Forms/RateThreadForm"
 
 const limit = 10 as const
 const postLikesTake = 3 as const
@@ -43,7 +46,6 @@ const ThreadPage: NextPage = () => {
     const pageFromQuery = router.query.page as string
     const parsedPage = pageFromQuery ? parseInt(pageFromQuery) : 0
     const paths = usePaths()
-
     const scrollToTop = useScrollTo({ top: 0, behavior: 'smooth' })
 
     const page = useMemo(() => {
@@ -86,6 +88,36 @@ const ThreadPage: NextPage = () => {
                 isError={threadQuery.isError}
                 NonEmpty={(thread) => (
                     <>
+                        <Breadcrumbs items={[
+                            <LinkButton
+                                href={paths.home()}
+                            >
+                                {thread.thread.subCategory.category.name}
+                            </LinkButton>,
+                            <LinkButton
+                                href={paths.subCategoryId(thread.thread.subCategory.category.name, thread.thread.subCategory.id)}
+                            >
+                                {thread.thread.subCategory.name}
+                            </LinkButton>,
+                            <LinkButton
+                                href={paths.thread(thread.thread.id)}
+                            >
+                                {thread.thread.title}
+                            </LinkButton>
+                        ]} />
+                        <div className='flex flex-col space-y-1 mb-12'>
+                            <div className='flex gap-5 items-center flex-wrap'>
+                                <div className='font-bold text-4xl'>{thread.thread.title}</div>
+                                <RateThreadForm threadId={thread.thread.id} />
+                            </div>
+                            <div className='text-gray-500 text-sm flex gap-1'>
+                                <span>created at</span><span className='text-gray-300'>{formatDateToDisplay(thread.thread.createdAt)}</span>
+                            </div>
+
+                            {/* <div className='text-gray-500 text-sm flex gap-1'> */}
+                            {/*     <span>updated at</span><span className='text-gray-300'>{formatDateToDisplay(thread.thread.updatedAt)}</span> */}
+                            {/* </div> */}
+                        </div>
                         <Pagination
                             className='mb-5'
                             currentPage={page}
@@ -110,10 +142,11 @@ const ThreadPage: NextPage = () => {
                                             user: post.user,
                                             id: post.id,
                                             _count: post._count,
-                                            postLikes: post.postLikes
+                                            postLikes: post.postLikes,
+                                            thread: post.thread
                                         }}
                                         currentPage={page}
-                                        postNumber={calcPostNumber(page, limit, index) + 1}
+                                        postNumber={calcPostNumber(page, limit, index)}
                                         goToPageWithPostNumberFn={() => paths.threadPageWithPostIndex(page, limit, threadId, calcPostNumber(page, limit, index))}
                                     />
                                 ))}
@@ -241,16 +274,30 @@ const Post: React.FC<{
                         onChange={() => null}
                     /> : null}
                 {mode === 'edit' ?
-                    <CustomEditor
+                    <EditPostForm
+                        onSuccess={() => {
+                            setMode('view')
+                            void utils.thread.postsPagination.invalidate({ page: currentPage, threadId: post.thread.id })
+                        }}
+                        postId={post.id}
                         editorState={editorState}
-                        onChange={setEditorState}
+                        setEditorState={setEditorState}
                     /> : null}
-                <button
-                    className='flex justify-start w-fit'
-                    onClick={() => setMode(prev => prev === 'edit' ? 'view' : 'edit')}
-                >
-                    Edit
-                </button>
+                <SessionStateWrapper
+                    Guest={() => <></>}
+                    User={(sessionData) => (
+                        sessionData.user.id !== post.user.id
+                            ? <></>
+                            : <div>
+                                <Button
+                                    onClick={() => setMode(prev => prev === 'edit' ? 'view' : 'edit')}
+                                    variant='primary'
+                                >
+                                    {mode === 'edit' ? 'Stop editing' : 'Edit'}
+                                </Button>
+                            </div>
+                    )}
+                />
 
                 {/* Post likes */}
                 {post._count.postLikes ?
@@ -353,7 +400,7 @@ const ReportModal: React.FC<{
             reportPostMutation.mutate(data)
         }
 
-        const onError: SubmitErrorHandler<PostSchemes['report']> = (data, e) => {
+        const onError: SubmitErrorHandler<PostSchemes['report']> = (_, e) => {
             e?.preventDefault()
         }
 

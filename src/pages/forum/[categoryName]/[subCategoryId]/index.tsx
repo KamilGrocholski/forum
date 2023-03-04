@@ -9,6 +9,9 @@ import { useMemo } from "react"
 import Pagination from "../../../../components/common/Pagination"
 import UserAvatar from "../../../../components/common/UserAvatar"
 import { USER_ROLE_THINGS } from "../../../../utils/userRoleThings"
+import Breadcrumbs from "../../../../components/common/Breadcrumbs"
+import { RatingReadonly } from "../../../../components/common/Rating"
+import { getAvgRating } from "../../../../utils/getAvgRating"
 
 const SubCategoryPage: NextPage = () => {
   const router = useRouter()
@@ -24,7 +27,7 @@ const SubCategoryPage: NextPage = () => {
 
   const threadsPagination = api.subCategory.threadsPagination.useQuery({
     subCategoryId,
-    limit: 3,
+    limit: 2,
     page
   }, {
     keepPreviousData: true
@@ -56,6 +59,20 @@ const SubCategoryPage: NextPage = () => {
         Empty={<div>This subcategory has no threads.</div>}
         NonEmpty={(threads) => (
           <>
+            <Breadcrumbs
+              items={[
+                <LinkButton
+                  href={paths.home()}
+                >
+                  {threads.subCategory.category.name}
+                </LinkButton>,
+                <LinkButton
+                  href={paths.subCategoryId(threads.subCategory.category.name, threads.subCategory.id)}
+                >
+                  {threads.subCategory.name}
+                </LinkButton>
+              ]}
+            />
             <Pagination
               className='mb-5'
               currentPage={page}
@@ -94,7 +111,7 @@ const SubCategoryPage: NextPage = () => {
                   </div>
 
                   {/* Thread rating  */}
-                  <div>ratings</div>
+                  <RatingReadonly totalRatings={thread.ratings.length} rating={getAvgRating(thread.ratings.map(({ rating }) => rating))} />
                   <div>
                     <div>Replies: {thread._count.posts}</div>
                     <div>Views: {thread._count.views}</div>
@@ -113,7 +130,7 @@ const SubCategoryPage: NextPage = () => {
                           alt=''
                           src={thread.posts[0].user.image}
                         />
-                        <span className={`${USER_ROLE_THINGS[thread.posts[0].user.role].textColor} truncate block`}>
+                        <span className={`${USER_ROLE_THINGS[thread.posts[0].user.role].textColor} truncate md:block hidden`}>
                           {thread.posts[0].user.name}
                         </span>
                       </LinkButton>

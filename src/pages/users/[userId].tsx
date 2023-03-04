@@ -3,7 +3,10 @@ import { useRouter } from "next/router"
 import StateWrapper from "../../components/common/StateWrapper"
 import UserAvatar from "../../components/common/UserAvatar"
 import MainLayout from "../../components/layout/MainLayout"
-import { api } from "../../utils/api"
+import usePaths from "../../hooks/usePaths"
+import { api, RouterOutputs } from "../../utils/api"
+import LinkButton from '../../components/common/LinkButton'
+import { formatDateToDisplay } from "../../utils/formatDateToDisplay"
 
 const UserProfilePage: NextPage = () => {
   const router = useRouter()
@@ -18,16 +21,19 @@ const UserProfilePage: NextPage = () => {
         isLoading={userProfileQuery.isLoading}
         isError={userProfileQuery.isError}
         NonEmpty={(user) => (
-          <div className='flex gap-1 p-3 rounded bg-zinc-900'>
-            <UserAvatar
-              width={80}
-              height={80}
-              alt=''
-              src={user.image}
-            />
-            <div className='text-xl font-semibold'>{user.name}</div>
-            <button onClick={() => w.mutate({ userId, role: 'imperator' })}>Role</button>
-          </div>
+          <>
+            <div className='flex gap-1 p-3 rounded bg-zinc-900'>
+              <UserAvatar
+                width={80}
+                height={80}
+                alt=''
+                src={user.image}
+              />
+              <div className='text-xl font-semibold'>{user.name}</div>
+              <button onClick={() => w.mutate({ userId, role: 'imperator' })}>Role</button>
+            </div>
+            <UserThreadsList threads={user.threads} />
+          </>
         )}
       />
     </MainLayout>
@@ -35,3 +41,33 @@ const UserProfilePage: NextPage = () => {
 }
 
 export default UserProfilePage
+
+const UserThreadsList: React.FC<{
+  threads: NonNullable<RouterOutputs['user']['getProfile']>['threads']
+}> = ({
+  threads
+}) => {
+    const paths = usePaths()
+
+    return (
+      <div className='flex flex-col space-y-3 bg-zinc-900 p-3'>
+        {threads.map((thread) => (
+          <div key={thread.id}>
+            <LinkButton
+              href={paths.thread(thread.id)}
+            >
+              <div>
+                {thread.title}
+              </div>
+              <div>
+                {formatDateToDisplay(thread.createdAt)}
+              </div>
+              <div>
+                {thread.subCategory.name}
+              </div>
+            </LinkButton>
+          </div>
+        ))}
+      </div>
+    )
+  }

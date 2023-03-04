@@ -1,7 +1,6 @@
 import { Fragment } from "react";
 import { Dialog, Transition } from "@headlessui/react";
-
-import type { Dispatch, MutableRefObject, SetStateAction } from "react";
+import { type Dispatch, type MutableRefObject, type SetStateAction } from "react";
 
 export const Modal: React.FC<{
     openState: [boolean, Dispatch<SetStateAction<boolean>>];

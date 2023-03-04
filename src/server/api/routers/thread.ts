@@ -3,9 +3,40 @@ import { threadSchemes } from "../schemes/thread";
 import { createTRPCRouter, publicProcedure, protectedProcedure, imperatorProcedure } from "../trpc";
 
 export const threadRouter = createTRPCRouter({
+    rateThread: protectedProcedure
+        .input(threadSchemes.rateThread)
+        .mutation(async ({ ctx, input }) => {
+            const { threadId, rating } = input
+
+            const existingRating = await ctx.prisma.threadRating.findFirst({
+                where: {
+                    threadId,
+                    userId: ctx.session.user.id
+                }
+            })
+
+            if (existingRating) {
+                return ctx.prisma.threadRating.update({
+                    where: {
+                        id: existingRating.id
+                    },
+                    data: {
+                        rating
+                    }
+                })
+            }
+
+            return ctx.prisma.threadRating.create({
+                data: {
+                    userId: ctx.session.user.id,
+                    threadId,
+                    rating
+                }
+            })
+        }),
     postsPagination: publicProcedure
         .input(threadSchemes.getPosts)
-        .query(async ({ctx, input}) => {
+        .query(async ({ ctx, input }) => {
             const { limit, threadId, page, postLikesTake } = input
 
             const postsCount = await ctx.prisma.post.count({
@@ -14,22 +45,45 @@ export const threadRouter = createTRPCRouter({
                 }
             })
 
-            if (!postsCount) throw new TRPCError({code: 'INTERNAL_SERVER_ERROR'})
+            if (!postsCount) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' })
 
             const totalPages = Math.ceil(postsCount / limit)
 
             const thread = await ctx.prisma.thread.findUnique({
                 where: {
                     id: threadId
-                }, 
+                },
                 select: {
                     id: true,
                     title: true,
                     createdAt: true,
+                    _count: {
+                        select: {
+                            ratings: true
+                        }
+                    },
+                    ratings: {
+                        select: {
+                            rating: true,
+                        }
+                    },
+                    subCategory: {
+                        select: {
+                            name: true,
+                            id: true,
+                            category: {
+                                select: {
+                                    name: true,
+                                    id: true
+                                }
+                            },
+
+                        }
+                    }
                 }
             })
 
-            if (!thread) throw new TRPCError({code: 'INTERNAL_SERVER_ERROR'})
+            if (!thread) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' })
 
             const posts = await ctx.prisma.post.findMany({
                 where: {
@@ -41,6 +95,7 @@ export const threadRouter = createTRPCRouter({
                     id: true,
                     content: true,
                     createdAt: true,
+                    thread: { select: { id: true } },
                     user: {
                         select: {
                             image: true,
@@ -62,7 +117,7 @@ export const threadRouter = createTRPCRouter({
                         }
                     },
                     postLikes: {
-                        take: postLikesTake, 
+                        take: postLikesTake,
                         select: {
                             user: {
                                 select: {
@@ -76,7 +131,7 @@ export const threadRouter = createTRPCRouter({
                 }
             })
 
-            if (!posts) throw new TRPCError({code: 'INTERNAL_SERVER_ERROR'})
+            if (!posts) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' })
 
             return {
                 thread,
@@ -85,13 +140,13 @@ export const threadRouter = createTRPCRouter({
             }
         }),
     count: publicProcedure
-        .query(({ctx}) => {
+        .query(({ ctx }) => {
 
             return ctx.prisma.thread.count()
         }),
     getById: publicProcedure
         .input(threadSchemes.getById)
-        .query(({ctx, input}) => {
+        .query(({ ctx, input }) => {
             const { id } = input
 
             return ctx.prisma.thread.findUnique({
@@ -144,7 +199,7 @@ export const threadRouter = createTRPCRouter({
             })
         }),
     getLatest: publicProcedure
-        .query(({ctx}) => {
+        .query(({ ctx }) => {
 
             return ctx.prisma.thread.findMany({
                 take: 10,
@@ -157,7 +212,7 @@ export const threadRouter = createTRPCRouter({
                             name: true,
                             id: true,
                             category: true
-                        }                        
+                        }
                     },
                     user: {
                         select: {
@@ -168,10 +223,10 @@ export const threadRouter = createTRPCRouter({
                         }
                     }
                 }
-            }) 
+            })
         }),
     getAll: publicProcedure
-        .query(({ctx}) => {
+        .query(({ ctx }) => {
 
             return ctx.prisma.thread.findMany({
                 select: {
@@ -182,7 +237,7 @@ export const threadRouter = createTRPCRouter({
         }),
     create: protectedProcedure
         .input(threadSchemes.create)
-        .mutation(({ctx, input}) => {
+        .mutation(({ ctx, input }) => {
             const { title, subCategoryId, content } = input
 
             return ctx.prisma.thread.create({
@@ -201,7 +256,7 @@ export const threadRouter = createTRPCRouter({
         }),
     delete: protectedProcedure
         .input(threadSchemes.delete)
-        .mutation(({ctx, input}) => {
+        .mutation(({ ctx, input }) => {
             const { id } = input
 
             return ctx.prisma.thread.delete({
@@ -212,7 +267,7 @@ export const threadRouter = createTRPCRouter({
         }),
     update: protectedProcedure
         .input(threadSchemes.update)
-        .mutation(({ctx, input}) => {
+        .mutation(({ ctx, input }) => {
             const { id, title, subCategoryId } = input
 
             return ctx.prisma.thread.update({

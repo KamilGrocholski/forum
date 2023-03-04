@@ -17,7 +17,7 @@ const Pagination: React.FC<PaginationProps> = ({
     goToPrev,
     goTo,
     className,
-    onPageChange
+    onPageChange,
 }) => {
     const pagesArray = Array.from({ length: pages }).map((_, index) => index)
 
@@ -68,7 +68,7 @@ const PaginationButton: React.FC<{
         <button
             onClick={onClick}
             className={clsx(
-                'hover:text-white rounded-sm border border-zinc-900 lg:px-1 lg:py-0 py-2 px-4 text-2xl lg:text-md ',
+                'hover:text-white rounded border border-zinc-900 lg:px-1 lg:py-0 py-1 px-3 text-2xl lg:text-md ',
                 className
             )}>
             {children}
