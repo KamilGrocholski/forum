@@ -3,12 +3,12 @@ import { createTRPCRouter, publicProcedure, protectedProcedure, imperatorProcedu
 
 export const userRouter = createTRPCRouter({
     count: publicProcedure
-        .query(({ctx}) => {
+        .query(({ ctx }) => {
 
             return ctx.prisma.user.count()
         }),
     getLastNewUser: publicProcedure
-        .query(({ctx}) => {
+        .query(({ ctx }) => {
 
             return ctx.prisma.user.findFirst({
                 select: {
@@ -20,9 +20,9 @@ export const userRouter = createTRPCRouter({
             })
         }),
     getProfile: publicProcedure
-        .input(z.object({userId: z.string().cuid()}))
-        .query(({ctx, input}) => {
-            const {userId} = input
+        .input(z.object({ userId: z.string().cuid() }))
+        .query(({ ctx, input }) => {
+            const { userId } = input
 
             return ctx.prisma.user.findUnique({
                 where: {
@@ -38,6 +38,34 @@ export const userRouter = createTRPCRouter({
                             posts: true,
                             threads: true
                         }
+                    },
+                    threads: {
+                        select: {
+                            title: true,
+                            createdAt: true,
+                            updatedAt: true,
+                            id: true,
+                            _count: {
+                                select: {
+                                    posts: true,
+                                    views: true
+                                }
+                            },
+                            subCategory: {
+                                select: {
+                                    id: true,
+                                    name: true
+                                }
+                            },
+                            user: {
+                                select: {
+                                    name: true,
+                                    image: true,
+                                    id: true,
+                                    role: true
+                                }
+                            },
+                        },
                     }
                 }
             })
@@ -47,8 +75,8 @@ export const userRouter = createTRPCRouter({
             userId: z.string().cuid(),
             role: z.literal('user').or(z.literal('admin')).or(z.literal('imperator'))
         })))
-        .mutation(({ctx, input}) => {
-            const {userId, role} = input
+        .mutation(({ ctx, input }) => {
+            const { userId, role } = input
 
             return ctx.prisma.user.update({
                 where: {

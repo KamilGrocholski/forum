@@ -49,21 +49,21 @@ const Footer: React.FC = () => {
                         <div>
                             <SessionStateWrapper
                                 Guest={(signIn) => (
-                                  <div>
-                                    <button onClick={() => signIn('discord')}>Sign in</button>
-                                  </div>
+                                    <div>
+                                        <button onClick={() => signIn('discord')}>Sign in</button>
+                                    </div>
                                 )}
                                 User={(sessionData) => (
-                                  <div className='flex flex-col'>
-                                    <LinkButton
-                                      href={paths.user(sessionData.user.id)}
-                                    >
-                                      Profile
-                                    </LinkButton>
-                                  </div>
+                                    <div className='flex flex-col'>
+                                        <LinkButton
+                                            href={paths.user(sessionData.user.id)}
+                                        >
+                                            Profile
+                                        </LinkButton>
+                                    </div>
                                 )}
                             />
-                         </div>
+                        </div>
                     </div>
                     <div>
                         <h2 className='text-red-900 text-lg font-semibold flex items-center gap-2'>

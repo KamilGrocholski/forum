@@ -11,7 +11,7 @@ const useSet = <T>(initialArgs?: T[] | null): [Omit<Set<T>, 'add' | 'delete' | '
 
   const actions: Actions<T> = {
     clear: useCallback(() => {
-      setSet(new Set())  
+      setSet(new Set())
     }, []),
     add: useCallback((value) => {
       const copy = new Set(set)

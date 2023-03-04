@@ -133,6 +133,7 @@ model ThreadRating {
     threadId String
     user     User   @relation(fields: [userId], references: [id])
     userId   String
+    rating   Int
 
     createdAt DateTime @default(now())
 }
