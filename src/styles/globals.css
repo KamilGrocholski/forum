@@ -3,32 +3,35 @@
 @tailwind utilities;
 
 @layer base {
-    *,
-    ::before,
-    ::after {
-        @apply box-border;
-    }
+  *,
+  ::before,
+  ::after {
+    @apply box-border;
+  }
 
-    body {
-        @apply bg-gray-900 text-white;
-    }
+  body {
+    @apply bg-gray-900 text-white;
+  }
 
-    input {
-        @apply bg-zinc-900 text-white;
-    }
+  input {
+    @apply bg-zinc-900 text-white;
+  }
+
+  #toasts-portal {
+    @apply fixed bottom-4 right-4 z-50 flex flex-col items-center gap-8;
+  }
 }
 
 .editor {
-    height: 100%;
-    width: 100%;
+  height: 100%;
+  width: 100%;
 }
 
 .editor .DraftEditor-editorContainer {
-  width:100%;
-  height:100%;
+  width: 100%;
+  height: 100%;
 }
 
 .readonly-editor .DraftEditor-editorContainer {
-    background-color: rgb(53, 53, 56);
+  background-color: rgb(53, 53, 56);
 }
-

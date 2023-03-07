@@ -1,17 +1,27 @@
-import { appStore } from "../../store/appStore"
-import Footer from "./Footer"
-import Header from "./Header"
+import { appStore } from "../../store/appStore";
+import Toasts from "../common/Toasts/Toasts";
+import Footer from "./Footer";
+import Header from "./Header";
 
-const MainLayout: React.FC<{ children: JSX.Element | JSX.Element[] }> = ({ children }) => {
-    const layoutWidth = appStore(state => state.layoutWidth)
+const MainLayout: React.FC<{ children: JSX.Element | JSX.Element[] }> = ({
+  children,
+}) => {
+  const layoutWidth = appStore((state) => state.layoutWidth);
 
-    return (
-        <>
-            <Header />
-            <main className={`transition-all duration-300 ease-in-out min-h-screen ${layoutWidth === 'full' ? 'w-full' : 'container'} mx-auto px-3 py-8`}>{children}</main>
-            <Footer />
-        </>
-    )
-}
+  return (
+    <>
+      <Header />
+      <Toasts />
+      <main
+        className={`min-h-screen transition-all duration-300 ease-in-out ${
+          layoutWidth === "full" ? "w-full" : "container"
+        } mx-auto px-3 py-8`}
+      >
+        {children}
+      </main>
+      <Footer />
+    </>
+  );
+};
 
-export default MainLayout
+export default MainLayout;

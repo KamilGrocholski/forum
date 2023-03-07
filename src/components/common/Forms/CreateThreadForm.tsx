@@ -13,11 +13,14 @@ import { EditorState } from 'draft-js'
 import { z } from 'zod'
 import dartJsConversion from '../../../utils/dartJsConversion'
 import Button from '../Button'
+import useToasts from '../../../hooks/useToasts'
 
 const CreateThreadForm: React.FC = () => {
     const [subCategoryName, setSubCategoryName] = useState<string | null>(null)
 
     const [editorState, setEditorState] = useState<EditorState>(() => EditorState.createEmpty())
+
+    const {push} = useToasts()
 
     const {
         register,
@@ -37,11 +40,11 @@ const CreateThreadForm: React.FC = () => {
 
     const createThread = api.thread.create.useMutation({
         onSuccess: (data) => {
-            alert(data.title)
+            push('thread-create-success')
             void router.push(paths.thread(data.id))
         },
         onError: () => {
-            alert('error')
+            push('thread-create-error')
         }
     })
 
