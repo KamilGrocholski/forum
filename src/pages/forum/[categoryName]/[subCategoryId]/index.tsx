@@ -12,6 +12,9 @@ import { USER_ROLE_THINGS } from "../../../../utils/userRoleThings";
 import Breadcrumbs from "../../../../components/common/Breadcrumbs";
 import { RatingReadonly } from "../../../../components/common/Rating";
 import { getAvgRating } from "../../../../utils/getAvgRating";
+import ThreadsFilter, {
+  useThreadsFilter,
+} from "../../../../components/common/Filters/ThreadsFilter";
 
 const SubCategoryPage: NextPage = () => {
   const router = useRouter();
@@ -28,7 +31,7 @@ const SubCategoryPage: NextPage = () => {
   const threadsPagination = api.subCategory.threadsPagination.useQuery(
     {
       subCategoryId,
-      limit: 2,
+      limit: 10,
       page,
     },
     {
@@ -51,6 +54,8 @@ const SubCategoryPage: NextPage = () => {
       }
     );
   };
+
+  const { filter, setFilter } = useThreadsFilter();
 
   return (
     <MainLayout>
@@ -78,6 +83,7 @@ const SubCategoryPage: NextPage = () => {
                 </LinkButton>,
               ]}
             />
+            <ThreadsFilter filter={filter} setFilter={setFilter} />
             <Pagination
               className="mb-5"
               currentPage={page}

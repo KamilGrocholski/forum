@@ -17,6 +17,9 @@ export const threadBase = {
 }
 
 export const threadSchemes = {
+    search: z.object({
+        query: z.string()
+    }),
     getPosts: z.object({
         threadId: threadBase.id,
         limit: z.number().default(10),

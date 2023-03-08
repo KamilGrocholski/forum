@@ -32,4 +32,4 @@ const useSet = <T>(
   return [set, actions];
 };
 
-export default useSet
+export default useSet;

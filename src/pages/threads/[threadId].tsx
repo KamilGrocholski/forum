@@ -118,7 +118,14 @@ const ThreadPage: NextPage = () => {
             <div className="mb-12 flex flex-col space-y-1">
               <div className="flex flex-wrap items-center gap-5">
                 <div className="text-4xl font-bold">{thread.thread.title}</div>
-                <RateThreadForm threadId={thread.thread.id} />
+                <RateThreadForm
+                  threadId={thread.thread.id}
+                  defaultRating={
+                    thread.thread.ratings[0] !== undefined
+                      ? thread.thread.ratings[0].rating
+                      : undefined
+                  }
+                />
               </div>
               <div className="flex gap-1 text-sm text-gray-500">
                 <span>created at</span>

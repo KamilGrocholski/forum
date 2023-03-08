@@ -18,7 +18,8 @@ import useToasts from "../../../hooks/useToasts";
 
 const RateThreadForm: React.FC<{
   threadId: Thread["id"];
-}> = ({ threadId }) => {
+  defaultRating?: number;
+}> = ({ threadId, defaultRating = 0 }) => {
   const { push } = useToasts();
 
   const rateThreadMutation = api.thread.rateThread.useMutation({
@@ -35,6 +36,7 @@ const RateThreadForm: React.FC<{
   >({
     defaultValues: {
       threadId,
+      rating: defaultRating,
     },
     resolver: zodResolver(threadSchemes.rateThread),
   });
@@ -48,7 +50,7 @@ const RateThreadForm: React.FC<{
     e?.preventDefault();
   };
 
-  const [rating, setRating] = useState(0);
+  const [rating, setRating] = useState(() => defaultRating);
   const [hover, setHover] = useState(-1);
 
   useEffect(() => {
