@@ -122,11 +122,11 @@ const Header = () => {
           </div>
         </div>
         <div className="flex h-full w-full items-end pb-1 text-sm">
+          {/* <div>A</div>
           <div>A</div>
           <div>A</div>
           <div>A</div>
-          <div>A</div>
-          <div>A</div>
+          <div>A</div> */}
         </div>
       </div>
     </header>

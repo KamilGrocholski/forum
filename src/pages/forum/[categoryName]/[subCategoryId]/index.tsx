@@ -100,12 +100,12 @@ const SubCategoryPage: NextPage = () => {
               {threads.threads.map((thread) => (
                 <div
                   key={thread.id}
-                  className="grid grid-cols-6 items-center border-b border-zinc-700 py-3 last:border-none hover:bg-zinc-800"
+                  className="grid grid-cols-4 items-center border-b border-zinc-700 py-3 last:border-none hover:bg-zinc-800 lg:grid-cols-6"
                 >
                   {/* Thread creator  */}
                   <LinkButton
                     href={paths.user(thread.user.id)}
-                    className="group relative w-fit"
+                    className="group relative hidden w-fit lg:block"
                   >
                     <UserAvatar
                       width={50}
@@ -140,13 +140,13 @@ const SubCategoryPage: NextPage = () => {
                       thread.ratings.map(({ rating }) => rating)
                     )}
                   />
-                  <div>
+                  <div className="hidden lg:block">
                     <div>Replies: {thread._count.posts}</div>
                     <div>Views: {thread._count.views}</div>
                   </div>
 
                   {/* Latest post's creator */}
-                  <div>
+                  <div className="hidden lg:block">
                     {thread.posts[0]?.user.id ? (
                       <LinkButton
                         href={paths.user(thread.posts[0].user.id)}

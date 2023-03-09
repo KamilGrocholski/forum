@@ -15,6 +15,7 @@ import {
 import { api } from "../../../utils/api";
 import Button from "../Button";
 import useToasts from "../../../hooks/useToasts";
+import SessionStateWrapper from "../SessionStateWrapper";
 
 const RateThreadForm: React.FC<{
   threadId: Thread["id"];
@@ -89,7 +90,12 @@ const RateThreadForm: React.FC<{
           </div>
         )}
       />
-      <Button type="submit">Rate</Button>
+      <SessionStateWrapper
+        Guest={(signIn) => (
+          <Button onClick={() => void signIn("discord")}>Rate</Button>
+        )}
+        User={() => <Button type="submit">Rate</Button>}
+      />
     </form>
   );
 };

@@ -8,7 +8,9 @@ export type ToastId =
   | "thread-create-success"
   | "thread-create-error"
   | "post-report-success"
-  | "post-report-error";
+  | "post-report-error"
+  | "post-create-success"
+  | "post-create-error";
 
 interface ToastStore {
   toasts: Set<ToastId>;

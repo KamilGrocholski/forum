@@ -234,6 +234,7 @@ export const threadRouter = createTRPCRouter({
     }),
   getLatest: publicProcedure.query(({ ctx }) => {
     return ctx.prisma.thread.findMany({
+      orderBy: { createdAt: "desc" },
       take: 10,
       select: {
         title: true,
