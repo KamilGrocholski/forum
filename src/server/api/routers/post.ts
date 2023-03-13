@@ -6,7 +6,8 @@ import {
   protectedProcedure,
   imperatorProcedure,
 } from "../trpc";
-import { pusherServerClient } from "../pusher";
+import { observable } from "@trpc/server/observable";
+import { pusherServerClient } from "../../utils/pusher";
 
 export const postRouter = createTRPCRouter({
   report: protectedProcedure
@@ -34,13 +35,6 @@ export const postRouter = createTRPCRouter({
       });
 
       if (foundLike) throw new TRPCError({ code: "FORBIDDEN" });
-
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-      await pusherServerClient.trigger(
-        `user-${ctx.session.user.id}`,
-        "post-like",
-        {}
-      );
 
       return await ctx.prisma.postLike.create({
         data: {
@@ -80,16 +74,40 @@ export const postRouter = createTRPCRouter({
   }),
   create: protectedProcedure
     .input(postSchemes.create)
-    .mutation(({ ctx, input }) => {
+    .mutation(async ({ ctx, input }) => {
       const { content, threadId } = input;
 
-      return ctx.prisma.post.create({
+      const post = await ctx.prisma.post.create({
         data: {
           userId: ctx.session.user.id,
           content,
           threadId,
         },
       });
+
+      if (post) {
+        try {
+          const notification = await ctx.prisma.notification.create({
+            data: {
+              userId: post.userId,
+              title: "New post",
+              content: "Created new post",
+            },
+          });
+
+          if (notification) {
+            await pusherServerClient.trigger(
+              `user-${ctx.session.user.id}`,
+              "notification",
+              {}
+            );
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      }
+
+      return post;
     }),
   delete: protectedProcedure
     .input(postSchemes.delete)

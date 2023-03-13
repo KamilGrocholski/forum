@@ -13,261 +13,265 @@ import { formatDateToDisplay } from "../utils/formatDateToDisplay";
 import { USER_ROLE_THINGS } from "../utils/userRoleThings";
 
 const Home: NextPage = () => {
-    const categoriesWithSubCategories =
-        api.category.getAllWithSubCategories.useQuery();
+  const categoriesWithSubCategories =
+    api.category.getAllWithSubCategories.useQuery();
 
-    return (
-        <MainLayout>
-            <div className="flex flex-row gap-3">
-                <div className="w-full">
-                    <StateWrapper
-                        data={categoriesWithSubCategories.data}
-                        isLoading={categoriesWithSubCategories.isLoading}
-                        isError={categoriesWithSubCategories.isError}
-                        NonEmpty={(categories) => (
-                            <div>
-                                {categories.map((category) => (
-                                    <CategoryDisclosure
-                                        key={category.id}
-                                        categoryInfo={{
-                                            id: category.id,
-                                            name: category.name,
-                                            subCategories: category.subCategories,
-                                        }}
-                                    />
-                                ))}
-                            </div>
-                        )}
-                    />
-                    <ForumActionsInfo />
-                </div>
-                <SidebarForumInfo />
-            </div>
-        </MainLayout>
-    );
+  return (
+    <MainLayout>
+      <div className="flex flex-row gap-3">
+        <div className="w-full">
+          <StateWrapper
+            data={categoriesWithSubCategories.data}
+            isLoading={categoriesWithSubCategories.isLoading}
+            isError={categoriesWithSubCategories.isError}
+            NonEmpty={(categories) => (
+              <div>
+                {categories.map((category) => (
+                  <CategoryDisclosure
+                    key={category.id}
+                    categoryInfo={{
+                      id: category.id,
+                      name: category.name,
+                      subCategories: category.subCategories,
+                    }}
+                  />
+                ))}
+              </div>
+            )}
+          />
+          <ForumActionsInfo />
+        </div>
+        <SidebarForumInfo />
+      </div>
+    </MainLayout>
+  );
 };
 
 export default Home;
 
 const ForumActionsInfo: React.FC = () => {
-    const getLatestPosts = api.post.getLatest.useQuery();
-    const getLatestThreads = api.thread.getLatest.useQuery();
+  const getLatestPosts = api.post.getLatest.useQuery();
+  const getLatestThreads = api.thread.getLatest.useQuery();
 
-    const paths = usePaths();
+  const paths = usePaths();
 
-    return (
-        <Tab.Group>
-            <Tab.List>
-                <Tab as={Fragment}>
-                    {({ selected }) => (
-                        <button
-                            className={`rounded-t-sm p-2 hover:text-white ${selected ? "bg-zinc-800 text-red-900" : "bg-zinc-900"
-                                }`}
-                        >
-                            Latest replies
-                        </button>
-                    )}
-                </Tab>
-                <Tab as={Fragment}>
-                    {({ selected }) => (
-                        <button
-                            className={`rounded-t-sm p-2 hover:text-white ${selected ? "bg-zinc-800 text-red-900" : "bg-zinc-900"
-                                }`}
-                        >
-                            Latest Threads
-                        </button>
-                    )}
-                </Tab>
-                <Tab as={Fragment}>
-                    {({ selected }) => (
-                        <button
-                            className={`rounded-t-sm p-2 hover:text-white ${selected ? "bg-zinc-800 text-red-900" : "bg-zinc-900"
-                                }`}
-                        >
-                            Latest updates
-                        </button>
-                    )}
-                </Tab>
-            </Tab.List>
-            <Tab.Panels>
-                <Tab.Panel className="flex flex-col bg-zinc-800">
-                    <StateWrapper
-                        data={getLatestPosts.data}
-                        isLoading={getLatestPosts.isLoading}
-                        isError={getLatestPosts.isError}
-                        NonEmpty={(posts) => (
-                            <>
-                                {posts.map((post) => (
-                                    <ForumActionsInfoRow
-                                        key={post.id}
-                                        first={
-                                            <LinkButton href={paths.thread(post.thread.id)}>
-                                                {post.thread.title}
-                                            </LinkButton>
-                                        }
-                                        second={formatDateToDisplay(post.createdAt)}
-                                        third={
-                                            <LinkButton
-                                                href={paths.user(post.user.id)}
-                                                className={USER_ROLE_THINGS[post.user.role].textColor}
-                                            >
-                                                {post.user.name}
-                                            </LinkButton>
-                                        }
-                                    />
-                                ))}
-                            </>
-                        )}
-                    />
-                </Tab.Panel>
-                <Tab.Panel className="flex flex-col bg-zinc-800">
-                    <StateWrapper
-                        data={getLatestThreads.data}
-                        isLoading={getLatestThreads.isLoading}
-                        isError={getLatestThreads.isError}
-                        NonEmpty={(threads) => (
-                            <>
-                                {threads.map((thread) => (
-                                    <ForumActionsInfoRow
-                                        key={thread.id}
-                                        first={
-                                            <LinkButton href={paths.thread(thread.id)}>
-                                                {thread.title}
-                                            </LinkButton>
-                                        }
-                                        second={formatDateToDisplay(thread.createdAt)}
-                                        third={
-                                            <LinkButton
-                                                href={paths.user(thread.user.id)}
-                                                className={USER_ROLE_THINGS[thread.user.role].textColor}
-                                            >
-                                                {thread.user.name}
-                                            </LinkButton>
-                                        }
-                                    />
-                                ))}
-                            </>
-                        )}
-                    />
-                </Tab.Panel>
-                <Tab.Panel className="flex flex-col bg-zinc-800">
-                    <StateWrapper
-                        data={getLatestPosts.data}
-                        isLoading={getLatestPosts.isLoading}
-                        isError={getLatestPosts.isError}
-                        NonEmpty={(posts) => (
-                            <>
-                                {posts.map((post) => (
-                                    <ForumActionsInfoRow
-                                        key={post.id}
-                                        first={post.thread.title}
-                                        second={post.user.name}
-                                        third={formatDateToDisplay(post.createdAt)}
-                                    />
-                                ))}
-                            </>
-                        )}
-                    />
-                </Tab.Panel>
-            </Tab.Panels>
-        </Tab.Group>
-    );
+  return (
+    <Tab.Group>
+      <Tab.List>
+        <Tab as={Fragment}>
+          {({ selected }) => (
+            <button
+              className={`rounded-t-sm p-2 hover:text-white ${
+                selected ? "bg-zinc-800 text-red-900" : "bg-zinc-900"
+              }`}
+            >
+              Latest replies
+            </button>
+          )}
+        </Tab>
+        <Tab as={Fragment}>
+          {({ selected }) => (
+            <button
+              className={`rounded-t-sm p-2 hover:text-white ${
+                selected ? "bg-zinc-800 text-red-900" : "bg-zinc-900"
+              }`}
+            >
+              Latest Threads
+            </button>
+          )}
+        </Tab>
+        <Tab as={Fragment}>
+          {({ selected }) => (
+            <button
+              className={`rounded-t-sm p-2 hover:text-white ${
+                selected ? "bg-zinc-800 text-red-900" : "bg-zinc-900"
+              }`}
+            >
+              Latest updates
+            </button>
+          )}
+        </Tab>
+      </Tab.List>
+      <Tab.Panels>
+        <Tab.Panel className="flex flex-col bg-zinc-800">
+          <StateWrapper
+            data={getLatestPosts.data}
+            isLoading={getLatestPosts.isLoading}
+            isError={getLatestPosts.isError}
+            NonEmpty={(posts) => (
+              <>
+                {posts.map((post) => (
+                  <ForumActionsInfoRow
+                    key={post.id}
+                    first={
+                      <LinkButton href={paths.thread(post.thread.id)}>
+                        {post.thread.title}
+                      </LinkButton>
+                    }
+                    second={formatDateToDisplay(post.createdAt)}
+                    third={
+                      <LinkButton
+                        href={paths.user(post.user.id)}
+                        className={USER_ROLE_THINGS[post.user.role].textColor}
+                      >
+                        {post.user.name}
+                      </LinkButton>
+                    }
+                  />
+                ))}
+              </>
+            )}
+          />
+        </Tab.Panel>
+        <Tab.Panel className="flex flex-col bg-zinc-800">
+          <StateWrapper
+            data={getLatestThreads.data}
+            isLoading={getLatestThreads.isLoading}
+            isError={getLatestThreads.isError}
+            NonEmpty={(threads) => (
+              <>
+                {threads.map((thread) => (
+                  <ForumActionsInfoRow
+                    key={thread.id}
+                    first={
+                      <LinkButton href={paths.thread(thread.id)}>
+                        {thread.title}
+                      </LinkButton>
+                    }
+                    second={formatDateToDisplay(thread.createdAt)}
+                    third={
+                      <LinkButton
+                        href={paths.user(thread.user.id)}
+                        className={USER_ROLE_THINGS[thread.user.role].textColor}
+                      >
+                        {thread.user.name}
+                      </LinkButton>
+                    }
+                  />
+                ))}
+              </>
+            )}
+          />
+        </Tab.Panel>
+        <Tab.Panel className="flex flex-col bg-zinc-800">
+          <StateWrapper
+            data={getLatestPosts.data}
+            isLoading={getLatestPosts.isLoading}
+            isError={getLatestPosts.isError}
+            NonEmpty={(posts) => (
+              <>
+                {posts.map((post) => (
+                  <ForumActionsInfoRow
+                    key={post.id}
+                    first={post.thread.title}
+                    second={post.user.name}
+                    third={formatDateToDisplay(post.createdAt)}
+                  />
+                ))}
+              </>
+            )}
+          />
+        </Tab.Panel>
+      </Tab.Panels>
+    </Tab.Group>
+  );
 };
 
 const ForumActionsInfoRow: React.FC<{
-    first: React.ReactNode;
-    second: React.ReactNode;
-    third: React.ReactNode;
+  first: React.ReactNode;
+  second: React.ReactNode;
+  third: React.ReactNode;
 }> = ({ first, second, third }) => {
-    return (
-        <div className="grid grid-cols-4 border-b border-zinc-600 px-1 py-0.5 last:border-none hover:bg-zinc-800">
-            <div className="col-span-2">{first}</div>
-            <div className="text-end">{second}</div>
-            <div className="text-end">{third}</div>
-        </div>
-    );
+  return (
+    <div className="grid grid-cols-4 border-b border-zinc-600 px-1 py-0.5 last:border-none hover:bg-zinc-800">
+      <div className="col-span-2">{first}</div>
+      <div className="text-end">{second}</div>
+      <div className="text-end">{third}</div>
+    </div>
+  );
 };
 
 const CategoryDisclosure: React.FC<{
-    categoryInfo: RouterOutputs["category"]["getAllWithSubCategories"][number];
+  categoryInfo: RouterOutputs["category"]["getAllWithSubCategories"][number];
 }> = ({ categoryInfo }) => {
-    const paths = usePaths();
+  const paths = usePaths();
 
-    return (
-        <Disclosure as="div" className="mb-6" defaultOpen={true}>
-            {({ open }) => (
-                <>
-                    <Disclosure.Button className="flex w-full items-center justify-between rounded-sm bg-red-900 px-3 py-2 text-left text-sm">
-                        <span className="text-lg font-semibold">{categoryInfo.name}</span>
-                        <SlArrowDown
-                            className={`text-lg transition-all duration-300 ease-in-out ${open ? "rotate-180" : ""
-                                }`}
-                        />
-                    </Disclosure.Button>
+  return (
+    <Disclosure as="div" className="mb-6" defaultOpen={true}>
+      {({ open }) => (
+        <>
+          <Disclosure.Button className="flex w-full items-center justify-between rounded-sm bg-red-900 px-3 py-2 text-left text-sm">
+            <span className="text-lg font-semibold">{categoryInfo.name}</span>
+            <SlArrowDown
+              className={`text-lg transition-all duration-300 ease-in-out ${
+                open ? "rotate-180" : ""
+              }`}
+            />
+          </Disclosure.Button>
 
-                    {/*
+          {/*
             Use the `Transition` + `open` render prop argument to add transitions.
           */}
-                    <Transition
-                        show={open}
-                        enter="transition duration-100 ease-out"
-                        enterFrom="transform scale-95 opacity-0"
-                        enterTo="transform scale-100 opacity-100"
-                        leave="transition duration-75 ease-out"
-                        leaveFrom="transform scale-100 opacity-100"
-                        leaveTo="transform scale-95 opacity-0"
-                    >
-                        {/*
+          <Transition
+            show={open}
+            enter="transition duration-100 ease-out"
+            enterFrom="transform scale-95 opacity-0"
+            enterTo="transform scale-100 opacity-100"
+            leave="transition duration-75 ease-out"
+            leaveFrom="transform scale-100 opacity-100"
+            leaveTo="transform scale-95 opacity-0"
+          >
+            {/*
               Don't forget to add `static` to your `Disclosure.Panel`!
             */}
-                        <Disclosure.Panel static className="bg-zinc-900">
-                            {categoryInfo.subCategories.map((subCategory) => (
-                                <div
-                                    key={subCategory.id}
-                                    className="grid grid-cols-4 gap-3 border-t border-white/30 py-2 px-3 first:border-none"
-                                >
-                                    <div className="col-span-2 flex items-center gap-3">
-                                        <BiCommentDetail className="text-2xl text-red-900" />
-                                        <LinkButton
-                                            href={paths.subCategoryId(
-                                                categoryInfo.name,
-                                                subCategory.id
-                                            )}
-                                            className="hover:underline"
-                                        >
-                                            {subCategory.name}
-                                        </LinkButton>
-                                    </div>
-                                    <div className="flex justify-end gap-3">
-                                        <div>Threads {subCategory._count.threads}</div>
-                                        <div>
-                                            Posts{" "}
-                                            {subCategory.threads.reduce(
-                                                (sum, cur) => sum + cur._count.posts,
-                                                0
-                                            )}
-                                        </div>
-                                    </div>
-                                    <div className="flex justify-end">
-                                        <div className="min-w-0">
-                                            {!subCategory.threads[0]?.id ? (
-                                                "No threads"
-                                            ) : (
-                                                <LinkButton
-                                                    href={paths.thread(subCategory.threads[0].id)}
-                                                    className="block truncate hover:underline"
-                                                >
-                                                    {subCategory.threads[0].title}
-                                                </LinkButton>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </Disclosure.Panel>
-                    </Transition>
-                </>
-            )}
-        </Disclosure>
-    );
+            <Disclosure.Panel static className="bg-zinc-900">
+              {categoryInfo.subCategories.map((subCategory) => (
+                <div
+                  key={subCategory.id}
+                  className="grid grid-cols-4 gap-3 border-t border-white/30 py-2 px-3 first:border-none"
+                >
+                  <div className="col-span-2 flex items-center gap-3">
+                    <BiCommentDetail className="text-2xl text-red-900" />
+                    <LinkButton
+                      href={paths.subCategoryId(
+                        categoryInfo.name,
+                        subCategory.id
+                      )}
+                      className="hover:underline"
+                    >
+                      {subCategory.name}
+                    </LinkButton>
+                  </div>
+                  <div className="flex justify-end gap-3">
+                    <div>Threads {subCategory._count.threads}</div>
+                    <div>
+                      Posts{" "}
+                      {subCategory.threads.reduce(
+                        (sum, cur) => sum + cur._count.posts,
+                        0
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex justify-end">
+                    <div className="min-w-0">
+                      {!subCategory.threads[0]?.id ? (
+                        "No threads"
+                      ) : (
+                        <LinkButton
+                          href={paths.thread(subCategory.threads[0].id)}
+                          className="block truncate hover:underline"
+                        >
+                          {subCategory.threads[0].title}
+                        </LinkButton>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </Disclosure.Panel>
+          </Transition>
+        </>
+      )}
+    </Disclosure>
+  );
 };

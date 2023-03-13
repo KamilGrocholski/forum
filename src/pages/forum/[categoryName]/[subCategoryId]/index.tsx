@@ -28,11 +28,16 @@ const SubCategoryPage: NextPage = () => {
     return parsedPage;
   }, [parsedPage]);
 
+  const { filter, setFilter } = useThreadsFilter({
+    sortBy: "createdAt",
+  });
+
   const threadsPagination = api.subCategory.threadsPagination.useQuery(
     {
       subCategoryId,
       limit: 10,
       page,
+      filter,
     },
     {
       keepPreviousData: true,
@@ -54,8 +59,6 @@ const SubCategoryPage: NextPage = () => {
       }
     );
   };
-
-  const { filter, setFilter } = useThreadsFilter();
 
   return (
     <MainLayout>

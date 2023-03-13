@@ -10,7 +10,9 @@ export type ToastId =
   | "post-report-success"
   | "post-report-error"
   | "post-create-success"
-  | "post-create-error";
+  | "post-create-error"
+  | 'post-edit-success'
+  | 'post-edit-error';
 
 interface ToastStore {
   toasts: Set<ToastId>;

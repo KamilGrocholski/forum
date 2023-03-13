@@ -57,13 +57,24 @@ export const threadRouter = createTRPCRouter({
         });
       }
 
-      return ctx.prisma.threadRating.create({
+      const rated = await ctx.prisma.threadRating.create({
         data: {
           userId: ctx.session.user.id,
           threadId,
           rating,
         },
+        select: {
+          user: {
+            select: {
+              name: true,
+              id: true,
+              image: true,
+            },
+          },
+        },
       });
+
+      return rated;
     }),
   postsPagination: publicProcedure
     .input(threadSchemes.getPosts)

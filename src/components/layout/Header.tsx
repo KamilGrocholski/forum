@@ -1,12 +1,12 @@
 import Link from "next/link";
-import { Fragment, useState } from "react";
+import { Fragment, useRef, useState } from "react";
 import { appStore } from "../../store/appStore";
-import SessionStateWrapper from "../common/SessionStateWrapper";
 import { AiOutlineColumnWidth } from "react-icons/ai";
 import { BiBell } from "react-icons/bi";
+import StateWrapper from "../common/StateWrapper";
 import { FiMail, FiSearch } from "react-icons/fi";
 import { Menu, Transition } from "@headlessui/react";
-import type { Role } from "@prisma/client";
+import type { Role, User } from "@prisma/client";
 import usePaths from "../../hooks/usePaths";
 import UserAvatar from "../common/UserAvatar";
 import { USER_ROLE_THINGS } from "../../utils/userRoleThings";
@@ -16,10 +16,49 @@ import LinkButton from "../common/LinkButton";
 import { api, type RouterOutputs } from "../../utils/api";
 import { useRouter } from "next/router";
 import useDebounce from "../../hooks/useDebounce";
+import SessionStateWrapper from "../common/SessionStateWrapper";
+import { PusherProvider, useSubscribeToEvent } from "../../utils/Pusher";
+import Indicator from "../common/Indicator";
+import useOnClickOutside from "../../hooks/useClickOutside";
+import { useSession } from "next-auth/react";
 
 const Header = () => {
   const paths = usePaths();
   const router = useRouter();
+  const { data: session } = useSession();
+
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const notificationBtnRef = useRef<HTMLButtonElement | null>(null);
+  useOnClickOutside(notificationBtnRef, () => setNotificationsOpen(false));
+
+  const unseenNotificationsCounterQuery = api.notification.countUnseen.useQuery(
+    undefined,
+    {
+      refetchOnMount: false,
+      refetchOnReconnect: true,
+      refetchOnWindowFocus: false,
+      enabled: !!session?.user.id,
+    }
+  );
+
+  const changeNotificationsToSeenMutation =
+    api.notification.changeToSeen.useMutation({
+      onSuccess: () => {
+        void unseenNotificationsCounterQuery.refetch();
+      },
+      onError: (err) => {
+        console.error(err);
+      },
+    });
+
+  const handleNotificationsToggle = () => {
+    if (!notificationsOpen) {
+      setNotificationsOpen(true);
+      void changeNotificationsToSeenMutation.mutate();
+    } else {
+      setNotificationsOpen(false);
+    }
+  };
 
   const layoutWidth = appStore((state) => state.layoutWidth);
   const setLayoutWidth = appStore((state) => state.setLayoutWidth);
@@ -107,8 +146,22 @@ const Header = () => {
                   <button onClick={toggleLayoutWidth}>
                     <FiMail />
                   </button>
-                  <button onClick={toggleLayoutWidth}>
-                    <BiBell />
+                  <button
+                    onClick={handleNotificationsToggle}
+                    className="relative"
+                    ref={notificationBtnRef}
+                  >
+                    <Indicator
+                      showIndicator={!!unseenNotificationsCounterQuery.data}
+                      x="end"
+                      y="top"
+                      content={unseenNotificationsCounterQuery.data}
+                    >
+                      <BiBell />
+                    </Indicator>
+                    {notificationsOpen ? (
+                      <NotificationsWrapper userId={sessionData.user.id} />
+                    ) : null}
                   </button>
                   <button onClick={() => liveSearchOpenState[1](true)}>
                     <FiSearch />
@@ -160,7 +213,7 @@ const UserAccountMenu: React.FC<{
         leaveFrom="transform opacity-100 scale-100"
         leaveTo="transform opacity-0 scale-95"
       >
-        <Menu.Items className="absolute right-0 z-20 mt-2 w-56 origin-top-right divide-y divide-zinc-700  rounded-md bg-zinc-900 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+        <Menu.Items className="absolute right-0 z-20 mt-2 w-56 origin-top-right divide-y divide-zinc-700 rounded-md bg-zinc-900 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
           <div className="px-1 py-1">
             <Menu.Item>
               <div className="flex gap-3">
@@ -192,5 +245,46 @@ const UserAccountMenu: React.FC<{
         </Menu.Items>
       </Transition>
     </Menu>
+  );
+};
+
+const NotificationsView = () => {
+  const notificationsQuery = api.notification.getAll.useQuery(undefined, {
+    refetchOnMount: false,
+    refetchOnReconnect: true,
+    refetchOnWindowFocus: false,
+  });
+
+  const utils = api.useContext();
+  useSubscribeToEvent("notification", () => {
+    void utils.notification.countUnseen.invalidate();
+    void notificationsQuery.refetch();
+  });
+
+  return (
+    <div className="absolute top-6 right-0 max-h-[50vh] w-64 overflow-y-scroll rounded bg-zinc-600 p-3">
+      <StateWrapper
+        data={notificationsQuery.data}
+        isLoading={notificationsQuery.isLoading}
+        isError={notificationsQuery.isError}
+        NonEmpty={(notifications) => (
+          <div>
+            {notifications.map((notification) => (
+              <div className="w-fit" key={notification.id}>
+                {notification.title}
+              </div>
+            ))}
+          </div>
+        )}
+      />
+    </div>
+  );
+};
+
+const NotificationsWrapper: React.FC<{ userId: User["id"] }> = ({ userId }) => {
+  return (
+    <PusherProvider slug={`user-${userId}`}>
+      <NotificationsView />
+    </PusherProvider>
   );
 };

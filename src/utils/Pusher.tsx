@@ -1,19 +1,20 @@
-import Pusher, { type Channel, type PresenceChannel } from "pusher-js";
-import vanillaCreate, { type StoreApi } from "zustand/vanilla";
+import type { Channel, PresenceChannel } from "pusher-js";
+import type { StoreApi } from "zustand/vanilla";
+import type { PropsWithChildren } from "react";
+
+import { useEffect, useRef, useState } from "react";
+import Pusher from "pusher-js";
+// import { atom } from 'jotai'
+import createContext from "zustand/context";
 import { env } from "../env.mjs";
+import vanillaCreate from "zustand/vanilla";
 
-const pusher_key = env.NEXT_PUBLIC_PUSHER_APP_KEY;
-const pusher_server_host = env.NEXT_PUBLIC_PUSHER_SERVER_HOST;
-const pusher_server_port = parseInt(env.NEXT_PUBLIC_PUSHER_SERVER_PORT, 10);
-const pusher_server_tls = env.NEXT_PUBLIC_PUSHER_SERVER_TLS === "true";
-const pusher_server_cluster = env.NEXT_PUBLIC_PUSHER_SERVER_CLUSTER;
-
-interface PusherZustandStore {
+type PusherZustandStore = {
   pusherClient: Pusher;
   channel: Channel;
   presenceChannel: PresenceChannel;
   members: Map<string, unknown>;
-}
+};
 
 const createPusherStore = (slug: string) => {
   let pusherClient: Pusher;
@@ -22,13 +23,8 @@ const createPusherStore = (slug: string) => {
     pusherClient.connect();
   } else {
     const randomUserId = `random-user-id:${Math.random().toFixed(7)}`;
-    pusherClient = new Pusher(pusher_key, {
-      wsHost: pusher_server_host,
-      wsPort: pusher_server_port,
-      enabledTransports: pusher_server_tls ? ["ws", "wss"] : ["ws"],
-      forceTLS: pusher_server_tls,
-      cluster: pusher_server_cluster,
-      disableStats: true,
+    pusherClient = new Pusher(env.NEXT_PUBLIC_PUSHER_APP_KEY, {
+      cluster: env.NEXT_PUBLIC_PUSHER_SERVER_CLUSTER,
       authEndpoint: "/api/pusher/auth-channel",
       auth: {
         headers: { user_id: randomUserId },
@@ -44,8 +40,8 @@ const createPusherStore = (slug: string) => {
 
   const store = vanillaCreate<PusherZustandStore>(() => {
     return {
-      pusherClient: pusherClient,
-      channel: channel,
+      pusherClient,
+      channel,
       presenceChannel,
       members: new Map(),
     };
@@ -53,9 +49,8 @@ const createPusherStore = (slug: string) => {
 
   const updateMembers = () => {
     store.setState(() => ({
-      members: new Map(
-        Object.entries(presenceChannel.members.members as { name: string })
-      ),
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+      members: new Map(Object.entries(presenceChannel.members.members)),
     }));
   };
 
@@ -66,24 +61,26 @@ const createPusherStore = (slug: string) => {
   return store;
 };
 
-import createContext from "zustand/context";
 const {
   Provider: PusherZustandStoreProvider,
   useStore: usePusherZustandStore,
 } = createContext<StoreApi<PusherZustandStore>>();
 
-import React, { useEffect, useState } from "react";
-
-export const PusherProvider: React.FC<
-  React.PropsWithChildren<{ slug: string }>
-> = ({ slug, children }) => {
-  const [store, updateStore] = useState<ReturnType<typeof createPusherStore>>();
+export const PusherProvider = ({
+  slug,
+  children,
+}: PropsWithChildren<{ slug: string }>) => {
+  const [store, setStore] = useState<ReturnType<typeof createPusherStore>>();
 
   useEffect(() => {
     const newStore = createPusherStore(slug);
-    updateStore(newStore);
+    setStore(newStore);
     return () => {
       const pusher = newStore.getState().pusherClient;
+      console.log("disconnecting pusher and destroying store", pusher);
+      console.log(
+        "(Expect a warning in terminal after this, React Dev Mode and all)"
+      );
       pusher.disconnect();
       newStore.destroy();
     };
@@ -104,13 +101,14 @@ export function useSubscribeToEvent<MessageType>(
 ) {
   const channel = usePusherZustandStore((state) => state.channel);
 
-  const stableCallback = React.useRef(callback);
+  const stableCallback = useRef(callback);
 
-  React.useEffect(() => {
+  // Keep callback sync'd
+  useEffect(() => {
     stableCallback.current = callback;
   }, [callback]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const reference = (data: MessageType) => {
       stableCallback.current(data);
     };
@@ -120,3 +118,6 @@ export function useSubscribeToEvent<MessageType>(
     };
   }, [channel, eventName]);
 }
+
+export const useCurrentMemberCount = () =>
+  usePusherZustandStore((s) => s.members.size);

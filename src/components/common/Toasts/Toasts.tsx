@@ -4,16 +4,16 @@ const Toasts = () => {
   return (
     <>
       <Toast id="post-report-success" variant="success">
-        ok
+        Post reported
       </Toast>
       <Toast id="post-report-error" variant="error">
-        ok
+        Post not reported
       </Toast>
       <Toast id="post-like-success" variant="success">
-        ok
+        Post liked
       </Toast>
       <Toast id="post-like-error" variant="error">
-        ok
+        Post not liked
       </Toast>
       <Toast id="post-create-success" variant="success">
         Post created!
@@ -28,10 +28,16 @@ const Toasts = () => {
         Could not rate the thread.
       </Toast>
       <Toast id="thread-create-error" variant="error">
-        ok
+        Thread not created
       </Toast>
       <Toast id="thread-create-success" variant="success">
-        ok
+        Thread created
+      </Toast>
+      <Toast id="post-edit-success" variant="success">
+        Post updated
+      </Toast>
+      <Toast id="post-edit-error" variant="error">
+        Post not updated
       </Toast>
     </>
   );

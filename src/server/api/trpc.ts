@@ -35,7 +35,7 @@ type CreateContextOptions = {
  *
  * @see https://create.t3.gg/en/usage/trpc#-servertrpccontextts
  */
-const createInnerTRPCContext = (opts: CreateContextOptions) => {
+export const createInnerTRPCContext = (opts: CreateContextOptions) => {
   return {
     session: opts.session,
     prisma,
@@ -52,7 +52,10 @@ export const createTRPCContext = async (opts: CreateNextContextOptions) => {
   const { req, res } = opts;
 
   // Get the session from the server using the getServerSession wrapper function
-  const session = await getServerAuthSession({ req, res });
+  const session = await getServerAuthSession({
+    req,
+    res,
+  });
 
   return createInnerTRPCContext({
     session,
@@ -125,18 +128,22 @@ const enforceUserIsAuthed = t.middleware(({ ctx, next }) => {
  */
 export const protectedProcedure = t.procedure.use(enforceUserIsAuthed);
 
-const enforceUserIsAdmin = t.middleware(({ctx, next}) => {
-  if (ctx.session?.user.role !== 'admin') throw new TRPCError({code: 'FORBIDDEN'})
+const enforceUserIsAdmin = t.middleware(({ ctx, next }) => {
+  if (ctx.session?.user.role !== "admin")
+    throw new TRPCError({ code: "FORBIDDEN" });
 
-  return next({ctx})
-})
+  return next({ ctx });
+});
 
-export const adminProcedure = protectedProcedure.use(enforceUserIsAdmin)
+export const adminProcedure = protectedProcedure.use(enforceUserIsAdmin);
 
-const enforceUserIsImperator = t.middleware(({ctx, next}) => {
-  if (ctx.session?.user.role !== 'admin') throw new TRPCError({code: 'FORBIDDEN'})
+const enforceUserIsImperator = t.middleware(({ ctx, next }) => {
+  if (ctx.session?.user.role !== "admin")
+    throw new TRPCError({ code: "FORBIDDEN" });
 
-  return next({ctx: {session: ctx.session}})
-})
+  return next({ ctx: { session: ctx.session } });
+});
 
-export const imperatorProcedure = protectedProcedure.use(enforceUserIsImperator)
+export const imperatorProcedure = protectedProcedure.use(
+  enforceUserIsImperator
+);

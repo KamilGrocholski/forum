@@ -46,7 +46,7 @@ const CreatePostForm: React.FC<{
   const createPost = api.post.create.useMutation({
     onSuccess: (createdPost) => {
       //   void utils.thread.getById.invalidate({ id: threadId });
-      void router.push(`/${paths.threadPageWithPostIndex(0, 10, threadId, 1)}`);
+      void router.push(`${paths.threadPageWithPostIndex(0, 10, threadId, 1)}`);
       push("post-create-success");
     },
     onError: () => {
