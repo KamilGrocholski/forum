@@ -1,7 +1,7 @@
 import { EditorState } from "draft-js";
 import { type NextPage } from "next";
 import { useRouter } from "next/router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import CustomEditor from "../../components/common/CustomEditor";
 import CreatePostForm from "../../components/common/Forms/CreatePostForm";
 import SessionStateWrapper from "../../components/common/SessionStateWrapper";
@@ -18,7 +18,7 @@ import LinkButton from "../../components/common/LinkButton";
 import clsx from "clsx";
 import UserAvatar from "../../components/common/UserAvatar";
 import Button from "../../components/common/Button";
-import { AiFillLike } from "react-icons/ai";
+import { AiFillLike, AiFillCalendar } from "react-icons/ai";
 import { MdReport } from "react-icons/md";
 import { FaQuoteRight, FaReply, FaHashtag } from "react-icons/fa";
 import { HiShare } from "react-icons/hi";
@@ -32,26 +32,24 @@ import {
 } from "react-hook-form";
 import TextInput from "../../components/common/TextInput";
 import { postSchemes, type PostSchemes } from "../../server/api/schemes/post";
-import type { Post as PostPrisma } from "@prisma/client";
+import type { Post as PostPrisma, Thread } from "@prisma/client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import EditPostForm from "../../components/common/Forms/EditPostForm";
 import Breadcrumbs from "../../components/common/Breadcrumbs";
 import RateThreadForm from "../../components/common/Forms/RateThreadForm";
 import useToasts from "../../hooks/useToasts";
-
-const limit = 10 as const;
-const postLikesTake = 3 as const;
-const calcPostNumber = (currentPage: number, limit: number, index: number) => {
-  return index + currentPage * limit;
-};
+import THREAD_PAGINATION_SETTINGS from "../../utils/threadPaginationSettings";
 
 const ThreadPage: NextPage = () => {
   const router = useRouter();
   const threadId = router.query.threadId as string;
   const pageFromQuery = router.query.page as string;
+  const postIndex = router.query.postIndex as string;
   const parsedPage = pageFromQuery ? parseInt(pageFromQuery) : 0;
   const paths = usePaths();
   const scrollToTop = useScrollTo({ top: 0, behavior: "smooth" });
+
+  const { limit, postLikesTake, calcPostIndex } = THREAD_PAGINATION_SETTINGS;
 
   const page = useMemo(() => {
     return parsedPage;
@@ -66,8 +64,19 @@ const ThreadPage: NextPage = () => {
     },
     {
       keepPreviousData: true,
+      enabled: router.isReady,
     }
   );
+
+  useEffect(() => {
+    if (postIndex && router.isReady) {
+      void router.push({
+        pathname: router.pathname,
+        query: router.query,
+        hash: postIndex,
+      });
+    }
+  }, [postIndex, router.isReady]);
 
   const setPageQuery = (page: number) => {
     void router.replace(
@@ -80,7 +89,7 @@ const ThreadPage: NextPage = () => {
       },
       undefined,
       {
-        shallow: true,
+        shallow: false,
       }
     );
   };
@@ -150,12 +159,14 @@ const ThreadPage: NextPage = () => {
                 setPageQuery(page - 1);
               }}
               onPageChange={scrollToTop}
+              shouldScrollToTop={false}
             />
             <div className="flex flex-col space-y-5">
               <div className="flex flex-col space-y-5">
                 {thread.posts.map((post, index) => (
                   <Post
                     key={post.id}
+                    threadId={threadId}
                     post={{
                       content: post.content?.toString() ?? "",
                       createdAt: post.createdAt,
@@ -166,13 +177,13 @@ const ThreadPage: NextPage = () => {
                       thread: post.thread,
                     }}
                     currentPage={page}
-                    postNumber={calcPostNumber(page, limit, index)}
+                    postNumber={calcPostIndex(page, index, limit)}
                     goToPageWithPostNumberFn={() =>
                       paths.threadPageWithPostIndex(
                         page,
                         limit,
                         threadId,
-                        calcPostNumber(page, limit, index)
+                        calcPostIndex(page, index, limit)
                       )
                     }
                   />
@@ -190,13 +201,12 @@ const ThreadPage: NextPage = () => {
                   setPageQuery(page - 1);
                 }}
                 onPageChange={scrollToTop}
+                shouldScrollToTop={false}
               />
               <div className="flex gap-3 rounded bg-zinc-900 p-3">
                 <SessionStateWrapper
                   Guest={(signIn) => (
-                    <button onClick={() => void signIn("discord")}>
-                      Sign in to post
-                    </button>
+                    <button onClick={signIn}>Sign in to post</button>
                   )}
                   User={(sessionData) => (
                     <>
@@ -222,16 +232,23 @@ const ThreadPage: NextPage = () => {
 export default ThreadPage;
 
 const Post: React.FC<{
+  threadId: Thread["id"];
   post: NonNullable<
     RouterOutputs["thread"]["postsPagination"]
   >["posts"][number];
   postNumber: number;
   currentPage: number;
   goToPageWithPostNumberFn: () => string;
-}> = ({ post, postNumber, goToPageWithPostNumberFn, currentPage }) => {
+}> = ({
+  post,
+  postNumber,
+  goToPageWithPostNumberFn,
+  currentPage,
+  threadId,
+}) => {
   const [mode, setMode] = useState<"view" | "edit">("view");
   const { push } = useToasts();
-
+  const { limit, postLikesTake } = THREAD_PAGINATION_SETTINGS;
   const utils = api.useContext();
 
   const likePostMutation = api.post.like.useMutation({
@@ -240,6 +257,8 @@ const Post: React.FC<{
       void utils.thread.postsPagination.invalidate({
         page: currentPage,
         limit,
+        threadId,
+        postLikesTake,
       });
     },
     onError: () => {
@@ -261,6 +280,14 @@ const Post: React.FC<{
   );
 
   const paths = usePaths();
+
+  const router = useRouter();
+
+  const scrollToPost = () => {
+    void router.push({
+      hash: postNumber.toString(),
+    });
+  };
 
   const [reportModalOpen, setReportModalOpen] = useState(false);
 
@@ -292,7 +319,7 @@ const Post: React.FC<{
         </div>
         <div className="text-sm">
           <div className="flex items-center gap-1">
-            <MdForum />
+            <AiFillCalendar />
             <span>{formatDateToDisplay(post.user.createdAt)}</span>
           </div>
           <div className="flex items-center gap-1">
@@ -319,13 +346,20 @@ const Post: React.FC<{
             <div>
               <HiShare />
             </div>
-            <LinkButton
+            <Button
+              variant="transparent"
+              icon={<FaHashtag />}
+              onClick={scrollToPost}
+            >
+              {postNumber}
+            </Button>
+            {/* <LinkButton
               href={goToPageWithPostNumberFn()}
               className="flex items-center gap-1"
             >
               <FaHashtag />
               <span>{postNumber}</span>
-            </LinkButton>
+            </LinkButton> */}
           </div>
         </div>
 

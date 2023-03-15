@@ -20,18 +20,26 @@
   #toasts-portal {
     @apply fixed bottom-4 right-4 z-50 flex flex-col items-center gap-8;
   }
+
+  * {
+    @apply scrollbar-thin scrollbar-track-zinc-900 scrollbar-thumb-red-900;
+  }
 }
 
 .editor {
   height: 100%;
   width: 100%;
+  background-color: rgb(53, 53, 56);
 }
 
 .editor .DraftEditor-editorContainer {
   width: 100%;
   height: 100%;
+  background-color: rgb(53, 53, 56);
 }
 
 .readonly-editor .DraftEditor-editorContainer {
   background-color: rgb(53, 53, 56);
+  padding: 0.3rem;
+  border-radius: 0.3rem;
 }

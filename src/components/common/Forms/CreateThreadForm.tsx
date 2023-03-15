@@ -79,7 +79,7 @@ const CreateThreadForm: React.FC = () => {
     <form
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
       onSubmit={handleSubmit(onValid, onError)}
-      className="flex flex-col space-y-3 rounded bg-zinc-700 p-3"
+      className="flex flex-col space-y-3 rounded bg-zinc-800 p-3"
     >
       <Button onClick={() => setOpen(true)}>Select subcategory</Button>
       <Modal openState={[open, setOpen]}>

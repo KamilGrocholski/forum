@@ -77,10 +77,6 @@ export const PusherProvider = ({
     setStore(newStore);
     return () => {
       const pusher = newStore.getState().pusherClient;
-      console.log("disconnecting pusher and destroying store", pusher);
-      console.log(
-        "(Expect a warning in terminal after this, React Dev Mode and all)"
-      );
       pusher.disconnect();
       newStore.destroy();
     };

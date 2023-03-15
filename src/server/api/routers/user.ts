@@ -2,8 +2,8 @@ import { z } from "zod";
 import {
   createTRPCRouter,
   publicProcedure,
-  protectedProcedure,
   imperatorProcedure,
+  protectedProcedure,
 } from "../trpc";
 
 export const userRouter = createTRPCRouter({

@@ -11,6 +11,8 @@ import SmallLoader from "../common/SmallLoader";
 import { USER_ROLE_THINGS } from "../../utils/userRoleThings";
 import UserAvatar from "../common/UserAvatar";
 import SessionStateWrapper from "../common/SessionStateWrapper";
+import { User } from "next-auth";
+import { useCurrentMemberCount, PusherProvider } from "../../utils/Pusher";
 
 const Footer: React.FC = () => {
   const layoutWidth = appStore((state) => state.layoutWidth);
@@ -47,7 +49,7 @@ const Footer: React.FC = () => {
             </h2>
             <div className="flex flex-col">
               <LinkButton href={paths.home()}>Home</LinkButton>
-              <LinkButton href={paths.postThread()}>Post thread</LinkButton>
+              <LinkButton href={paths.createThread()}>Create thread</LinkButton>
             </div>
           </div>
           <div>
@@ -59,9 +61,7 @@ const Footer: React.FC = () => {
               <SessionStateWrapper
                 Guest={(signIn) => (
                   <div>
-                    <button onClick={() => void signIn("discord")}>
-                      Sign in
-                    </button>
+                    <button onClick={signIn}>Sign in</button>
                   </div>
                 )}
                 User={(sessionData) => (
@@ -111,6 +111,10 @@ const Footer: React.FC = () => {
                 />
               </div>
               <div className="flex items-center justify-between">
+                <span>Online members:</span>
+                <OnlineMembersWrapper userId="no-slug" />
+              </div>
+              <div className="flex items-center justify-between">
                 <span className="mr-2 whitespace-nowrap">New member:</span>
                 <StateWrapper
                   data={lastNewUser.data}
@@ -145,6 +149,20 @@ const Footer: React.FC = () => {
       </div>
       <div className="mt-3 h-8 bg-zinc-800  px-3 text-center">Copy right</div>
     </footer>
+  );
+};
+
+const OnlineMembers = () => {
+  const membersOnline = useCurrentMemberCount();
+
+  return <div>{membersOnline}</div>;
+};
+
+const OnlineMembersWrapper: React.FC<{ userId: User["id"] }> = ({ userId }) => {
+  return (
+    <PusherProvider slug={userId}>
+      <OnlineMembers />
+    </PusherProvider>
   );
 };
 

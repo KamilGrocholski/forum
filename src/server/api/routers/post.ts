@@ -1,12 +1,6 @@
 import { TRPCError } from "@trpc/server";
 import { postSchemes } from "../schemes/post";
-import {
-  createTRPCRouter,
-  publicProcedure,
-  protectedProcedure,
-  imperatorProcedure,
-} from "../trpc";
-import { observable } from "@trpc/server/observable";
+import { createTRPCRouter, publicProcedure, protectedProcedure } from "../trpc";
 import { pusherServerClient } from "../../utils/pusher";
 
 export const postRouter = createTRPCRouter({
@@ -83,21 +77,45 @@ export const postRouter = createTRPCRouter({
           content,
           threadId,
         },
+        select: {
+          user: {
+            select: {
+              name: true,
+              id: true,
+              role: true,
+            },
+          },
+          thread: {
+            select: {
+              title: true,
+              id: true,
+              user: {
+                select: {
+                  id: true,
+                },
+              },
+            },
+          },
+        },
       });
 
-      if (post) {
+      if (!post) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+      if (post.user.id !== post.thread.user.id) {
         try {
           const notification = await ctx.prisma.notification.create({
             data: {
-              userId: post.userId,
+              userId: post.thread.user.id,
               title: "New post",
-              content: "Created new post",
+              content: `${post.user.name ?? "A user"} has created a post in ${
+                post.thread.title
+              }`,
             },
           });
 
           if (notification) {
             await pusherServerClient.trigger(
-              `user-${ctx.session.user.id}`,
+              `user-${post.thread.user.id}`,
               "notification",
               {}
             );
@@ -107,7 +125,13 @@ export const postRouter = createTRPCRouter({
         }
       }
 
-      return post;
+      const postsCounter = await ctx.prisma.post.count({
+        where: {
+          threadId: post.thread.id,
+        },
+      });
+
+      return { post, postsCounter };
     }),
   delete: protectedProcedure
     .input(postSchemes.delete)

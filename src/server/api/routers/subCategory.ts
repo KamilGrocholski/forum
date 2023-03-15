@@ -1,11 +1,6 @@
 import { TRPCError } from "@trpc/server";
 import { subCategorySchemes } from "../schemes/subCategory";
-import {
-  createTRPCRouter,
-  publicProcedure,
-  protectedProcedure,
-  imperatorProcedure,
-} from "../trpc";
+import { createTRPCRouter, publicProcedure, protectedProcedure } from "../trpc";
 
 export const subCategoryRouter = createTRPCRouter({
   threadsPagination: publicProcedure
@@ -20,7 +15,8 @@ export const subCategoryRouter = createTRPCRouter({
         },
       });
 
-      if (!threadsCount) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      if (threadsCount === undefined)
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
 
       const totalPages = Math.ceil(threadsCount / limit);
 

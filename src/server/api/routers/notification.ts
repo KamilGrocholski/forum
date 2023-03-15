@@ -1,9 +1,4 @@
-import {
-  createTRPCRouter,
-  publicProcedure,
-  protectedProcedure,
-  imperatorProcedure,
-} from "../trpc";
+import { createTRPCRouter, protectedProcedure } from "../trpc";
 
 export const notificationRouter = createTRPCRouter({
   changeToSeen: protectedProcedure.mutation(({ ctx }) => {
@@ -12,7 +7,7 @@ export const notificationRouter = createTRPCRouter({
         userId: ctx.session.user.id,
       },
       data: {
-        seen: false,
+        seen: true,
       },
     });
   }),
@@ -26,6 +21,9 @@ export const notificationRouter = createTRPCRouter({
   }),
   getAll: protectedProcedure.query(({ ctx }) => {
     return ctx.prisma.notification.findMany({
+      orderBy: {
+        createdAt: "desc",
+      },
       where: {
         userId: ctx.session.user.id,
       },

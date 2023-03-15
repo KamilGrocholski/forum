@@ -4,7 +4,7 @@ import { appStore } from "../../store/appStore";
 import { AiOutlineColumnWidth } from "react-icons/ai";
 import { BiBell } from "react-icons/bi";
 import StateWrapper from "../common/StateWrapper";
-import { FiMail, FiSearch } from "react-icons/fi";
+import { FiSearch } from "react-icons/fi";
 import { Menu, Transition } from "@headlessui/react";
 import type { Role, User } from "@prisma/client";
 import usePaths from "../../hooks/usePaths";
@@ -55,9 +55,10 @@ const Header = () => {
     if (!notificationsOpen) {
       setNotificationsOpen(true);
       void changeNotificationsToSeenMutation.mutate();
-    } else {
-      setNotificationsOpen(false);
+      return;
     }
+
+    setNotificationsOpen(false);
   };
 
   const layoutWidth = appStore((state) => state.layoutWidth);
@@ -67,7 +68,7 @@ const Header = () => {
     setLayoutWidth(layoutWidth === "full" ? "container" : "full");
   };
 
-  const commonLinks = [{ href: paths.postThread(), label: "Post thread" }];
+  const commonLinks = [{ href: paths.createThread(), label: "Create thread" }];
 
   const links: { [key in Role]: { href: string; label: string }[] } = {
     user: [...commonLinks],
@@ -131,9 +132,7 @@ const Header = () => {
           </nav>
           <div>
             <SessionStateWrapper
-              Guest={(signIn) => (
-                <button onClick={() => void signIn("discord")}>Sign in</button>
-              )}
+              Guest={(signIn) => <button onClick={signIn}>Sign in</button>}
               User={(sessionData, signOut) => (
                 <div className="flex h-fit items-center gap-3 text-lg text-zinc-400">
                   <UserAccountMenu
@@ -143,9 +142,6 @@ const Header = () => {
                     role={sessionData.user.role}
                     signOut={signOut}
                   />
-                  <button onClick={toggleLayoutWidth}>
-                    <FiMail />
-                  </button>
                   <button
                     onClick={handleNotificationsToggle}
                     className="relative"
@@ -250,28 +246,33 @@ const UserAccountMenu: React.FC<{
 
 const NotificationsView = () => {
   const notificationsQuery = api.notification.getAll.useQuery(undefined, {
-    refetchOnMount: false,
+    refetchOnMount: true,
     refetchOnReconnect: true,
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: true,
   });
 
   const utils = api.useContext();
+
   useSubscribeToEvent("notification", () => {
     void utils.notification.countUnseen.invalidate();
     void notificationsQuery.refetch();
   });
 
   return (
-    <div className="absolute top-6 right-0 max-h-[50vh] w-64 overflow-y-scroll rounded bg-zinc-600 p-3">
+    <div className="absolute top-6 right-0 max-h-[30vh] w-64 overflow-y-scroll overscroll-y-none rounded bg-zinc-800 p-2">
       <StateWrapper
         data={notificationsQuery.data}
         isLoading={notificationsQuery.isLoading}
         isError={notificationsQuery.isError}
         NonEmpty={(notifications) => (
-          <div>
+          <div className="flex flex-col space-y-1">
             {notifications.map((notification) => (
-              <div className="w-fit" key={notification.id}>
-                {notification.title}
+              <div
+                className="flex w-full flex-col items-start rounded-sm bg-zinc-900 p-1 text-start text-sm"
+                key={notification.id}
+              >
+                <span className="font-semibold">{notification.title}</span>
+                <span>{notification.content}</span>
               </div>
             ))}
           </div>

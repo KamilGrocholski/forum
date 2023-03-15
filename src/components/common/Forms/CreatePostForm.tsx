@@ -15,6 +15,8 @@ import { z } from "zod";
 import { useRouter } from "next/router";
 import usePaths from "../../../hooks/usePaths";
 import useToasts from "../../../hooks/useToasts";
+import getThreadPageWithPostIndex from "../../../utils/getThreadPageWithPostIndex";
+import THREAD_PAGINATION_SETTINGS from "../../../utils/threadPaginationSettings";
 
 const CreatePostForm: React.FC<{
   threadId: Thread["id"];
@@ -22,6 +24,8 @@ const CreatePostForm: React.FC<{
   const [editorState, setEditorState] = useState<EditorState>(() =>
     EditorState.createEmpty()
   );
+
+  const { limit, postLikesTake } = THREAD_PAGINATION_SETTINGS;
 
   const {
     handleSubmit,
@@ -44,10 +48,22 @@ const CreatePostForm: React.FC<{
   const utils = api.useContext();
 
   const createPost = api.post.create.useMutation({
-    onSuccess: (createdPost) => {
-      //   void utils.thread.getById.invalidate({ id: threadId });
-      void router.push(`${paths.threadPageWithPostIndex(0, 10, threadId, 1)}`);
-      push("post-create-success");
+    onSuccess: async (postCreationResult) => {
+      const { threadPage, postIndex } = getThreadPageWithPostIndex(
+        postCreationResult.postsCounter,
+        limit
+      );
+      const w = await utils.thread.postsPagination.fetch({
+        limit,
+        page: threadPage,
+        threadId,
+        postLikesTake,
+      });
+      if (w) {
+        void router.push(
+          `${paths.threadPageWithPostIndex(0, limit, threadId, postIndex)}`
+        );
+      }
     },
     onError: () => {
       push("post-create-error");

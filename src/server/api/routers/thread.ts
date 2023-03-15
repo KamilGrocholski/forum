@@ -1,11 +1,6 @@
 import { TRPCError } from "@trpc/server";
 import { threadSchemes } from "../schemes/thread";
-import {
-  createTRPCRouter,
-  publicProcedure,
-  protectedProcedure,
-  imperatorProcedure,
-} from "../trpc";
+import { createTRPCRouter, publicProcedure, protectedProcedure } from "../trpc";
 
 export const threadRouter = createTRPCRouter({
   search: publicProcedure

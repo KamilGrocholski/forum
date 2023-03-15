@@ -6,6 +6,9 @@ import StateWrapper from "./StateWrapper";
 import usePaths from "../../hooks/usePaths";
 import LinkButton from "./LinkButton";
 import UserAvatar from "./UserAvatar";
+import type { User } from "@prisma/client";
+import { PusherProvider, useCurrentMemberCount } from "../../utils/Pusher";
+import { HiUsers } from "react-icons/hi";
 
 const SidebarForumInfo: React.FC = () => {
   const paths = usePaths();
@@ -14,6 +17,13 @@ const SidebarForumInfo: React.FC = () => {
 
   return (
     <div className="hidden w-[300px] lg:block">
+      <h1 className="flex items-center gap-3 px-3 text-lg font-semibold">
+        <HiUsers />
+        <span>Online</span>
+      </h1>
+      <div className="flex gap-3 rounded-sm bg-zinc-900 p-2">
+        <OnlineMembersWrapper userId={""} />
+      </div>
       <h1 className="flex items-center gap-3 px-3 text-lg font-semibold">
         <FaComment />
         <span>Latest posts</span>
@@ -46,15 +56,15 @@ const SidebarForumInfo: React.FC = () => {
                       {thread.title}
                     </LinkButton>
                     <div className="flex items-center gap-2 text-xs">
-                      <LinkButton
+                      {/* <LinkButton
                         href={paths.subCategoryId(
                           thread.subCategory.category.name,
                           thread.subCategory.id
                         )}
                         className="underline"
                       >
-                        {thread.subCategory.name}
-                      </LinkButton>
+                        {thread.subCategory.category.name}
+                      </LinkButton> */}
                       <Dot />
                       <span>{formatDateToDisplay(thread.createdAt)}</span>
                     </div>
@@ -66,6 +76,20 @@ const SidebarForumInfo: React.FC = () => {
         />
       </div>
     </div>
+  );
+};
+
+const OnlineMembers = () => {
+  const membersOnline = useCurrentMemberCount();
+
+  return <div>{membersOnline}</div>;
+};
+
+const OnlineMembersWrapper: React.FC<{ userId: User["id"] }> = ({ userId }) => {
+  return (
+    <PusherProvider slug={userId}>
+      <OnlineMembers />
+    </PusherProvider>
   );
 };
 

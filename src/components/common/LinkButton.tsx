@@ -1,44 +1,40 @@
-import clsx from "clsx"
-import NextLink, { type LinkProps } from "next/link"
+import clsx from "clsx";
+import NextLink, { type LinkProps } from "next/link";
+import { forwardRef } from "react";
 
 export interface LinkButtonProps extends LinkProps {
-    children: React.ReactNode
-    className?: string
-    underline?: keyof typeof UNDERLINE
-    size?: keyof typeof SIZE
+  children: React.ReactNode;
+  className?: string;
+  underline?: keyof typeof UNDERLINE;
+  size?: keyof typeof SIZE;
 }
 
-const LinkButton: React.FC<LinkButtonProps> = ({
-    children,
-    className,
-    underline = 'hover',
-    size = 'md',
-    ...rest
-}) => {
+const LinkButton = forwardRef<HTMLAnchorElement, LinkButtonProps>(
+  ({ children, className, underline = "hover", size = "md", ...rest }, ref) => {
     return (
-        <NextLink
-            className={clsx(
-                className,
-                UNDERLINE[underline],
-                SIZE[size]
-            )}
-            {...rest}
-        >
-            {children}
-        </NextLink>
-    )
-}
+      <NextLink
+        className={clsx(className, UNDERLINE[underline], SIZE[size])}
+        ref={ref}
+        {...rest}
+      >
+        {children}
+      </NextLink>
+    );
+  }
+);
 
-export default LinkButton
+LinkButton.displayName = "LinkButton";
+
+export default LinkButton;
 
 const UNDERLINE = {
-    always: 'underline',
-    hover: 'hover:underline'
-} as const
+  always: "underline",
+  hover: "hover:underline",
+} as const;
 
 const SIZE = {
-    sm: '',
-    md: 'text-md px-2',
-    lg: '',
-    xl: ''
-} as const
+  sm: "",
+  md: "text-md px-2",
+  lg: "",
+  xl: "",
+} as const;

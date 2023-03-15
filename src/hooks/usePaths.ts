@@ -1,5 +1,4 @@
 import type { SubCategory, Thread, User } from "@prisma/client";
-import { type SubCategorySchemes } from "../server/api/schemes/subCategory";
 
 const usePaths = () => {
   const paths = {
@@ -23,10 +22,10 @@ const usePaths = () => {
       postIndex: number
     ) {
       const knownPageToGo = Math.floor(postIndex / limit);
-      return `/threads/${threadId}?page=${knownPageToGo}&#${postIndex}` as const;
+      return `/threads/${threadId}?page=${knownPageToGo}&postIndex=${postIndex}` as const;
     },
-    postThread() {
-      return "/post-thread" as const;
+    createThread() {
+      return "/create-thread" as const;
     },
     home() {
       return "/" as const;

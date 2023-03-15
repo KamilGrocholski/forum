@@ -68,4 +68,5 @@ const SIZE = {
 const VARIANT = {
   primary: "bg-red-900 hover:bg-red-800",
   secondary: "bg-zinc-700 hover:bg-zinc-600",
+  transparent: false,
 } as const;

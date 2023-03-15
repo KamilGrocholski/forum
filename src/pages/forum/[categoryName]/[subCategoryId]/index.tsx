@@ -41,6 +41,7 @@ const SubCategoryPage: NextPage = () => {
     },
     {
       keepPreviousData: true,
+      enabled: router.isReady,
     }
   );
 
