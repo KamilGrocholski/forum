@@ -178,14 +178,6 @@ const ThreadPage: NextPage = () => {
                     }}
                     currentPage={page}
                     postNumber={calcPostIndex(page, index, limit)}
-                    goToPageWithPostNumberFn={() =>
-                      paths.threadPageWithPostIndex(
-                        page,
-                        limit,
-                        threadId,
-                        calcPostIndex(page, index, limit)
-                      )
-                    }
                   />
                 ))}
               </div>
@@ -238,14 +230,7 @@ const Post: React.FC<{
   >["posts"][number];
   postNumber: number;
   currentPage: number;
-  goToPageWithPostNumberFn: () => string;
-}> = ({
-  post,
-  postNumber,
-  goToPageWithPostNumberFn,
-  currentPage,
-  threadId,
-}) => {
+}> = ({ post, postNumber, currentPage, threadId }) => {
   const [mode, setMode] = useState<"view" | "edit">("view");
   const { push } = useToasts();
   const { limit, postLikesTake } = THREAD_PAGINATION_SETTINGS;
@@ -365,11 +350,13 @@ const Post: React.FC<{
 
         {/* Post content, edit or view */}
         {mode === "view" ? (
-          <CustomEditor
-            editorState={editorState}
-            readOnly={true}
-            onChange={() => null}
-          />
+          <div className="mb-12">
+            <CustomEditor
+              editorState={editorState}
+              readOnly={true}
+              onChange={() => null}
+            />
+          </div>
         ) : null}
         {mode === "edit" ? (
           <EditPostForm
@@ -391,16 +378,14 @@ const Post: React.FC<{
             sessionData.user.id !== post.user.id ? (
               <></>
             ) : (
-              <div>
-                <Button
-                  onClick={() =>
-                    setMode((prev) => (prev === "edit" ? "view" : "edit"))
-                  }
-                  variant="primary"
-                >
-                  {mode === "edit" ? "Stop editing" : "Edit"}
-                </Button>
-              </div>
+              <Button
+                onClick={() =>
+                  setMode((prev) => (prev === "edit" ? "view" : "edit"))
+                }
+                variant="primary"
+              >
+                {mode === "edit" ? "Stop editing" : "Edit"}
+              </Button>
             )
           }
         />

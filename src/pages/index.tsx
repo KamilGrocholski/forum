@@ -183,10 +183,10 @@ const ForumActionsInfoRow: React.FC<{
   third: React.ReactNode;
 }> = ({ first, second, third }) => {
   return (
-    <div className="grid grid-cols-4 border-b border-zinc-600 px-1 py-0.5 last:border-none hover:bg-zinc-800">
-      <div className="col-span-2">{first}</div>
-      <div className="text-end">{second}</div>
-      <div className="text-end">{third}</div>
+    <div className="grid grid-cols-3 border-b border-zinc-600 px-1 py-0.5 last:border-none hover:bg-zinc-800 lg:grid-cols-4">
+      <div className="col-span-2 flex text-ellipsis">{first}</div>
+      <div className="hidden text-end lg:flex">{second}</div>
+      <div className="flex text-end">{third}</div>
     </div>
   );
 };

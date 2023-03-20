@@ -1,26 +1,27 @@
-import Link from "next/link";
-import { Fragment, useRef, useState } from "react";
-import { appStore } from "../../store/appStore";
-import { AiOutlineColumnWidth } from "react-icons/ai";
-import { BiBell } from "react-icons/bi";
-import StateWrapper from "../common/StateWrapper";
-import { FiSearch } from "react-icons/fi";
 import { Menu, Transition } from "@headlessui/react";
 import type { Role, User } from "@prisma/client";
-import usePaths from "../../hooks/usePaths";
-import UserAvatar from "../common/UserAvatar";
-import { USER_ROLE_THINGS } from "../../utils/userRoleThings";
-import { Modal } from "../common/Modal";
-import LiveSearch from "../common/LiveSearch";
-import LinkButton from "../common/LinkButton";
-import { api, type RouterOutputs } from "../../utils/api";
-import { useRouter } from "next/router";
-import useDebounce from "../../hooks/useDebounce";
-import SessionStateWrapper from "../common/SessionStateWrapper";
-import { PusherProvider, useSubscribeToEvent } from "../../utils/Pusher";
-import Indicator from "../common/Indicator";
-import useOnClickOutside from "../../hooks/useClickOutside";
 import { useSession } from "next-auth/react";
+import Link from "next/link";
+import { useRouter } from "next/router";
+import { Fragment, useRef, useState } from "react";
+import { AiOutlineColumnWidth } from "react-icons/ai";
+import { BiBell } from "react-icons/bi";
+import { FiSearch } from "react-icons/fi";
+import useOnClickOutside from "../../hooks/useClickOutside";
+import useDebounce from "../../hooks/useDebounce";
+import usePaths from "../../hooks/usePaths";
+import { appStore } from "../../store/appStore";
+import { PusherProvider, useSubscribeToEvent } from "../../utils/Pusher";
+import { api, type RouterOutputs } from "../../utils/api";
+import { USER_ROLE_THINGS } from "../../utils/userRoleThings";
+import Indicator from "../common/Indicator";
+import LinkButton from "../common/LinkButton";
+import LiveSearch from "../common/LiveSearch";
+import { Modal } from "../common/Modal";
+import SessionStateWrapper from "../common/SessionStateWrapper";
+import StateWrapper from "../common/StateWrapper";
+import UserAvatar from "../common/UserAvatar";
+import Button from "../common/Button";
 
 const Header = () => {
   const paths = usePaths();
@@ -85,6 +86,8 @@ const Header = () => {
   const debouncedQuery = useDebounce(query);
   const searchThreads = api.thread.search.useQuery({ query: debouncedQuery });
 
+  const [isNavMenuOpen, setIsNavMenuOpen] = useState(false);
+
   return (
     <header className="sticky top-0 z-20 flex h-24 w-full items-center justify-between border-b border-zinc-800 bg-zinc-900">
       <Modal openState={liveSearchOpenState}>
@@ -99,16 +102,46 @@ const Header = () => {
           extractSuggestionKey={(suggestion) => suggestion.id}
         />
       </Modal>
+      <Modal openState={[isNavMenuOpen, setIsNavMenuOpen]}>
+        <SessionStateWrapper
+          Guest={() => (
+            <div className="flex flex-col divide-y">
+              {commonLinks.map((link) => (
+                <Link
+                  key={link.label}
+                  href={link.href}
+                  className="p-3 text-lg font-semibold text-red-500 hover:bg-gray-500/30"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+          )}
+          User={({ user: { role } }) => (
+            <div className="flex flex-col divide-y">
+              {links[role].map((link) => (
+                <Link
+                  key={link.label}
+                  href={link.href}
+                  className="p-3 text-lg font-semibold text-red-500 hover:bg-gray-500/30"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+          )}
+        />
+      </Modal>
       <div
-        className={`mx-auto flex h-full flex-col px-3 ${
+        className={`mx-auto flex h-full flex-col items-center px-3 ${
           layoutWidth === "container" ? "container" : "w-full"
         }`}
       >
-        <div className="flex h-full w-full items-end justify-between">
+        <div className="flex h-full w-full items-center justify-between">
           <Link href={paths.home()}>
             <span className="text-lg font-bold">Forum</span>
           </Link>
-          <nav className="ml-12 flex grow gap-3">
+          <nav className="ml-12 hidden grow gap-3 lg:flex">
             <SessionStateWrapper
               Guest={() => (
                 <>
@@ -130,6 +163,14 @@ const Header = () => {
               )}
             />
           </nav>
+          <div className="ml-2 flex grow items-center gap-3 lg:hidden">
+            <Button
+              variant="transparent"
+              onClick={() => setIsNavMenuOpen(true)}
+            >
+              Menu
+            </Button>
+          </div>
           <div>
             <SessionStateWrapper
               Guest={(signIn) => <button onClick={signIn}>Sign in</button>}
@@ -228,6 +269,7 @@ const UserAccountMenu: React.FC<{
               <LinkButton href={paths.user(id)}>My profile</LinkButton>
             </Menu.Item>
           </div>
+
           <div className="px-1 py-1">
             <Menu.Item>
               <button
